@@ -6,12 +6,19 @@ import { apiRouter } from "./routes/index.js";
 
 const app = express();
 
+// Trust reverse proxy headers (essential for Vercel deployment)
+app.enable("trust proxy");
+
 // Middleware: CORS
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl) or any localhost origin
-      if (!origin || /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+      if (
+        !origin ||
+        /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+        (config.frontendUrl && origin === config.frontendUrl)
+      ) {
         callback(null, true);
       } else {
         callback(null, true); // Allow configured origins in development
@@ -53,10 +60,12 @@ app.use("/api", apiRouter);
 // Central error handler
 app.use(errorHandler);
 
-// Start server
-app.listen(config.port, "0.0.0.0", () => {
-  console.log(`[APEX Backend] Server running on port ${config.port}`);
-  console.log(`[APEX Backend] Mode: ${config.nodeEnv}`);
-});
+// Start server if not running in serverless environment
+if (!process.env.VERCEL) {
+  app.listen(config.port, "0.0.0.0", () => {
+    console.log(`[APEX Backend] Server running on port ${config.port}`);
+    console.log(`[APEX Backend] Mode: ${config.nodeEnv}`);
+  });
+}
 
 export default app;

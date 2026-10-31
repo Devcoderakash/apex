@@ -20,41 +20,56 @@ export function getRazorpayClient(): Razorpay | null {
 export interface CreateOrderParams {
   amountPaise: number;
   currency?: string;
-  receipt: string;
+  receipt?: string;
   notes?: Record<string, string>;
 }
 
 export async function createRazorpayOrder(params: CreateOrderParams) {
-  const razorpay = getRazorpayClient();
+  if (!params.amountPaise || params.amountPaise < 100) {
+    const err: any = new Error("Amount must be at least 100 paise (₹1.00)");
+    err.statusCode = 400;
+    throw err;
+  }
 
+  const razorpay = getRazorpayClient();
   if (!razorpay) {
-    // If keys not set yet, simulate test order id so development doesn't crash
-    console.warn(
-      "[Razorpay Service] Razorpay credentials missing in env. Simulating test order.",
+    const err: any = new Error(
+      "Razorpay credentials missing. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment.",
     );
-    return {
-      id: `order_test_${params.receipt.slice(0, 14)}`,
-      entity: "order",
-      amount: params.amountPaise,
-      amount_paid: 0,
-      amount_due: params.amountPaise,
-      currency: params.currency || "INR",
-      receipt: params.receipt,
-      status: "created",
-      created_at: Math.floor(Date.now() / 1000),
-      isMock: true,
-    };
+    err.statusCode = 500;
+    throw err;
   }
 
   const orderOptions = {
-    amount: params.amountPaise,
+    amount: Math.round(params.amountPaise),
     currency: params.currency || "INR",
-    receipt: params.receipt,
+    receipt: params.receipt || `rcpt_${Date.now()}`,
     notes: params.notes || {},
   };
 
-  const order = await razorpay.orders.create(orderOptions);
-  return { ...order, isMock: false };
+  try {
+    const order = await razorpay.orders.create(orderOptions);
+    return order;
+  } catch (apiErr: any) {
+    console.error("[Razorpay API Error]", apiErr);
+    const statusCode =
+      apiErr.statusCode ||
+      apiErr.status ||
+      (apiErr.error?.code === "BAD_REQUEST_ERROR" &&
+      apiErr.error?.description?.toLowerCase().includes("auth")
+        ? 401
+        : 500);
+
+    const message =
+      apiErr.error?.description ||
+      apiErr.message ||
+      "Failed to create Razorpay order";
+
+    const err: any = new Error(message);
+    err.statusCode = statusCode;
+    err.details = apiErr.error;
+    throw err;
+  }
 }
 
 export function verifyRazorpaySignature(params: {
@@ -64,10 +79,13 @@ export function verifyRazorpaySignature(params: {
 }): boolean {
   const secret = config.razorpay.keySecret;
   if (!secret) {
-    console.warn(
-      "[Razorpay Service] RAZORPAY_KEY_SECRET missing. Development verification pass-through.",
-    );
-    return true;
+    console.error("[Razorpay Service] RAZORPAY_KEY_SECRET missing in environment.");
+    return false;
+  }
+
+  if (!params.orderId || !params.paymentId || !params.signature) {
+    console.error("[Razorpay Service] Missing required fields for signature verification.");
+    return false;
   }
 
   try {

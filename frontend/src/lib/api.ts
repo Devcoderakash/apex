@@ -43,31 +43,29 @@ export interface PaymentOrderResponse {
 export async function createOrder(
   data: CreateOrderPayload,
 ): Promise<PaymentOrderResponse> {
-  // If backend URL is specified, try backend order creation first
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+  // Try backend order creation first (via /api/create-order)
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/create-order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const responseData = await response.json();
-        if (response.ok) {
-          return responseData.data || responseData;
-        }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const responseData = await response.json();
+      if (response.ok) {
+        return responseData.data || responseData;
       }
-    } catch (backendErr) {
-      console.warn("[Order] Backend unavailable, using direct Supabase registration:", backendErr);
     }
+  } catch (backendErr) {
+    console.warn("[Order] Backend unavailable, using direct Supabase registration:", backendErr);
   }
 
   // Direct Supabase Registration
-  const keyId = (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || "rzp_test_TkxgPDyek4ZYAe";
+  const keyId = (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || "";
   const orderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   const playerIdFallback = `APEX-${randomSuffix}`;
@@ -143,26 +141,25 @@ export async function verifyPayment(params: VerifyPaymentPayload): Promise<{
   teamName: string;
   orderId: string;
 }> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/payments/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
-      });
+  // Try backend payment verification first (via /api/verify-payment)
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
 
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const responseData = await response.json();
-        if (response.ok) {
-          return responseData.data || responseData;
-        }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const responseData = await response.json();
+      if (response.ok) {
+        return responseData.data || responseData;
       }
-    } catch (backendErr) {
-      console.warn("[Payment] Backend verify failed, updating Supabase directly:", backendErr);
     }
+  } catch (backendErr) {
+    console.warn("[Payment] Backend verify failed, updating Supabase directly:", backendErr);
   }
 
   // Direct Supabase update
@@ -196,20 +193,18 @@ export async function verifyPayment(params: VerifyPaymentPayload): Promise<{
 export async function getTeamByOrderId(
   orderId: string,
 ): Promise<{ player_id: string; team_name: string; payment_status: string } | null> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/payments/order/${encodeURIComponent(orderId)}`,
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          if (json?.data) return json.data;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/payments/order/${encodeURIComponent(orderId)}`,
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        if (json?.data) return json.data;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data } = await supabase
     .from("teams")
@@ -223,20 +218,18 @@ export async function getTeamByOrderId(
 export async function getRegistrationStatus(
   id: string,
 ): Promise<{ id: string; player_id: string; team_name: string; payment_status: string } | null> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/registrations/${encodeURIComponent(id)}/status`,
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          if (json?.data) return json.data;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/registrations/${encodeURIComponent(id)}/status`,
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        if (json?.data) return json.data;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data } = await supabase
     .from("teams")
@@ -264,7 +257,39 @@ export interface UploadPptResponse {
  * with fallback to backend server if configured.
  */
 export async function uploadPptFile(file: File): Promise<UploadPptResponse> {
-  // 1. Direct Supabase Storage upload (bypasses serverless payload limit)
+  // 1. Prioritize backend upload (handles local disk + Supabase hybrid storage without client-side RLS/DNS issues)
+  const uploadEndpoint = API_BASE_URL ? `${API_BASE_URL}/api/upload/ppt` : "/api/upload/ppt";
+  try {
+    const formData = new FormData();
+    formData.append("ppt", file);
+
+    const response = await fetch(uploadEndpoint, {
+      method: "POST",
+      body: formData,
+    });
+
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const responseData = await response.json();
+      if (response.ok) {
+        return responseData;
+      }
+      throw new Error(responseData?.error || responseData?.detail || "Upload failed");
+    } else {
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`Upload server error (${response.status}): ${text.slice(0, 100)}`);
+      }
+    }
+  } catch (backendErr: any) {
+    console.warn("[Upload] Backend upload notice, attempting direct Supabase:", backendErr?.message);
+    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
+      // If backend returned a specific error, throw it so the user sees the exact message
+      throw backendErr;
+    }
+  }
+
+  // 2. Direct Supabase Storage fallback
   try {
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `submissions/${Date.now()}_${cleanName}`;
@@ -292,44 +317,13 @@ export async function uploadPptFile(file: File): Promise<UploadPptResponse> {
     }
 
     if (error) {
-      console.warn("[Upload] Direct Supabase upload notice:", error.message);
+      throw new Error(error.message);
     }
-  } catch (directErr) {
-    console.warn("[Upload] Direct upload attempt error:", directErr);
+  } catch (directErr: any) {
+    throw new Error(directErr.message || "Failed to upload file to storage.");
   }
 
-  // 2. Fallback to backend API upload route if configured
-  if (API_BASE_URL) {
-    try {
-      const formData = new FormData();
-      formData.append("ppt", file);
-
-      const response = await fetch(`${API_BASE_URL}/api/upload/ppt`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const responseData = await response.json();
-        if (!response.ok) {
-          throw new Error(responseData?.error || responseData?.detail || "Upload failed");
-        }
-        return responseData;
-      } else {
-        const text = await response.text();
-        throw new Error(
-          response.ok
-            ? "Invalid server response"
-            : `Upload server error (${response.status}): ${text.slice(0, 100)}`
-        );
-      }
-    } catch (backendErr: any) {
-      throw new Error(backendErr.message || "Failed to upload file to storage");
-    }
-  }
-
-  throw new Error("Storage policy not enabled. Please run the SQL policy in Supabase SQL Editor.");
+  throw new Error("Unable to save file to storage. Please try again.");
 }
 
 /**
@@ -350,17 +344,15 @@ export async function getPptSignedUrl(storagePath: string): Promise<string | nul
     if (pubData?.publicUrl) return pubData.publicUrl;
   } catch {}
 
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/upload/signed-url?path=${encodeURIComponent(storagePath)}`,
-      );
-      if (response.ok) {
-        const json = await response.json();
-        return json.url ?? null;
-      }
-    } catch {}
-  }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/upload/signed-url?path=${encodeURIComponent(storagePath)}`,
+    );
+    if (response.ok) {
+      const json = await response.json();
+      return json.url ?? null;
+    }
+  } catch {}
 
   return null;
 }
@@ -404,20 +396,18 @@ export async function getAdminPptSignedUrl(
     } catch {}
   }
 
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(teamId)}/ppt-url`,
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(teamId)}/ppt-url`,
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   return null;
 }
@@ -426,18 +416,16 @@ export async function getAdminPptSignedUrl(
  * Admin: fetch all registrations.
  */
 export async function getAdminRegistrations(): Promise<any[]> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/registrations`);
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/registrations`);
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data, error } = await supabase
     .from("teams")
@@ -454,25 +442,23 @@ export async function getAdminRegistrations(): Promise<any[]> {
  * Admin: update a team's status (approved, pending, rejected).
  */
 export async function updateAdminTeamStatus(id: string, status: string): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        },
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      },
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data, error } = await supabase
     .from("teams")
@@ -489,25 +475,23 @@ export async function updateAdminTeamStatus(id: string, status: string): Promise
  * Admin: update full team details.
  */
 export async function updateAdminTeam(id: string, teamData: any): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(teamData),
-        },
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(teamData),
+      },
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data, error } = await supabase
     .from("teams")
@@ -524,23 +508,21 @@ export async function updateAdminTeam(id: string, teamData: any): Promise<any> {
  * Admin: delete team registration.
  */
 export async function deleteAdminTeam(id: string): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
-        {
-          method: "DELETE",
-        },
-      );
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { error } = await supabase.from("teams").delete().eq("id", id);
   if (error) throw error;
@@ -557,18 +539,16 @@ export async function getAdminStats(): Promise<{
   pendingTeams: number;
   totalParticipants: number;
 }> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/stats`);
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/stats`);
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data: teams } = await supabase.from("teams").select("payment_status, status, team_size");
   const all = teams || [];
@@ -591,18 +571,16 @@ export async function getAdminStats(): Promise<{
  * Admin: get event settings.
  */
 export async function getAdminSettings(): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/settings`);
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/settings`);
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data } = await supabase.from("event_settings").select("*").maybeSingle();
   return data ?? { event_name: "APEX 1.0", prize_pool: "30000" };
@@ -612,22 +590,20 @@ export async function getAdminSettings(): Promise<any> {
  * Admin: update event settings.
  */
 export async function updateAdminSettings(settings: any): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-      if (response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const json = await response.json();
-          return json.data ?? json;
-        }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    });
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
       }
-    } catch {}
-  }
+    }
+  } catch {}
 
   const { data, error } = await supabase
     .from("event_settings")
@@ -648,21 +624,19 @@ export async function triggerConfirmationEmail(params: {
   orderId?: string;
   forceRetry?: boolean;
 }): Promise<{ success: boolean; message?: string; error?: string; alreadySent?: boolean }> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/emails/send-confirmation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-      });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/emails/send-confirmation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
 
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const json = await response.json();
-        return json;
-      }
-    } catch {}
-  }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const json = await response.json();
+      return json;
+    }
+  } catch {}
 
   return { success: true, message: "Confirmation email request logged." };
 }
@@ -671,15 +645,13 @@ export async function triggerConfirmationEmail(params: {
  * Check confirmation email delivery status.
  */
 export async function checkEmailStatus(id: string): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/emails/status/${encodeURIComponent(id)}`);
-      if (response.ok) {
-        const json = await response.json();
-        return json.data;
-      }
-    } catch {}
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/emails/status/${encodeURIComponent(id)}`);
+    if (response.ok) {
+      const json = await response.json();
+      return json.data;
+    }
+  } catch {}
 
   try {
     const { data } = await supabase
@@ -698,19 +670,72 @@ export async function checkEmailStatus(id: string): Promise<any> {
  * Admin: resend confirmation email to a registered team.
  */
 export async function sendAdminTeamEmail(id: string, force = true): Promise<any> {
-  if (API_BASE_URL) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(id)}/send-email?force=${force}`,
-        { method: "POST" },
-      );
-      if (response.ok) {
-        const json = await response.json();
-        return json.data ?? json;
-      }
-    } catch {}
-  }
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(id)}/send-email?force=${force}`,
+      { method: "POST" },
+    );
+    if (response.ok) {
+      const json = await response.json();
+      return json.data ?? json;
+    }
+  } catch {}
 
   return triggerConfirmationEmail({ teamId: id, forceRetry: force });
 }
+
+/**
+ * Creates a generic Razorpay Standard Checkout order on the backend.
+ */
+export async function createStandardOrder(params: {
+  amount: number; // in paise (e.g. 19900 = ₹199)
+  currency?: string;
+  receipt?: string;
+  notes?: Record<string, string>;
+}): Promise<{
+  success: boolean;
+  order_id: string;
+  amount: number;
+  currency: string;
+  key_id: string;
+  receipt?: string;
+}> {
+  const url = `${API_BASE_URL}/api/create-order`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to create Razorpay order");
+  }
+
+  return data;
+}
+
+/**
+ * Verifies Razorpay payment signature cryptographically on the backend.
+ */
+export async function verifyStandardPayment(params: {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<{ success: boolean; status: string; message?: string }> {
+  const url = `${API_BASE_URL}/api/verify-payment`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Payment signature verification failed");
+  }
+
+  return data;
+}
+
 

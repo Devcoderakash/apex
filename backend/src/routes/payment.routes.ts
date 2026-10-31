@@ -11,5 +11,6 @@ export const paymentRouter = Router();
 // Payment & Checkout endpoints
 paymentRouter.post("/create-order", createOrder);
 paymentRouter.post("/verify", verifyPayment);
+paymentRouter.post("/verify-payment", verifyPayment);
 paymentRouter.get("/order/:orderId", getOrder);
 paymentRouter.post("/webhook", handleWebhook);

@@ -290,31 +290,14 @@ function RegisterPage() {
       const keyId =
         orderData.keyId ||
         import.meta.env.VITE_RAZORPAY_KEY_ID ||
-        "rzp_test_TkxgPDyek4ZYAe";
+        "";
 
-      if (!keyId || !window.Razorpay) {
-        // Fallback simulation if no test key configured yet
-        console.warn("[Razorpay] Missing keyId or SDK. Simulating registration pass-through for testing.");
-        toast.info("DEVELOPMENT MODE", {
-          description: "Razorpay Test Key not configured yet. Simulating registration confirmation.",
-        });
+      if (!keyId) {
+        throw new Error("Razorpay Key ID is not configured. Please check VITE_RAZORPAY_KEY_ID in your environment.");
+      }
 
-        const verifyRes = await verifyPayment({
-          razorpay_order_id: orderData.orderId,
-          razorpay_payment_id: `pay_mock_${Date.now()}`,
-          razorpay_signature: "mock_signature_dev",
-          teamId: orderData.teamId,
-        });
-
-        navigate({
-          to: "/success",
-          search: {
-            pid: orderData.playerId,
-            team: values.team_name,
-            order_id: orderData.orderId,
-          },
-        });
-        return;
+      if (!window.Razorpay) {
+        throw new Error("Razorpay Checkout SDK is not loaded. Please refresh the page and try again.");
       }
 
       toast.loading("Opening Razorpay Checkout...", { id: "rzp_checkout" });

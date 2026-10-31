@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import fs from "node:fs";
+import path from "node:path";
 import { supabase } from "../services/supabase.service.js";
 import {
   deleteStoredTeam,
@@ -60,18 +62,36 @@ export async function getTeamPptSignedUrl(req: Request, res: Response) {
       return errorResponse(res, "No presentation file stored for this team", 404);
     }
 
-    const { data, error: signErr } = await supabase.storage
-      .from(PPT_BUCKET)
-      .createSignedUrl(team.ppt_storage_path, 3600); // 1 hour
+    const fileName = path.basename(team.ppt_storage_path);
+    const localFilePath = path.join(process.cwd(), "uploads", "submissions", fileName);
 
-    if (signErr || !data?.signedUrl) {
-      return errorResponse(res, "Failed to generate signed URL", 500);
+    let signedUrl = "";
+    if (fs.existsSync(localFilePath)) {
+      const protocol = req.protocol;
+      const host = req.get("host") || "localhost:5002";
+      signedUrl = `${protocol}://${host}/api/upload/file/${encodeURIComponent(fileName)}`;
+    } else {
+      try {
+        const { data, error: signErr } = await supabase.storage
+          .from(PPT_BUCKET)
+          .createSignedUrl(team.ppt_storage_path, 3600); // 1 hour
+
+        if (!signErr && data?.signedUrl) {
+          signedUrl = data.signedUrl;
+        }
+      } catch {}
+
+      if (!signedUrl) {
+        const protocol = req.protocol;
+        const host = req.get("host") || "localhost:5002";
+        signedUrl = `${protocol}://${host}/api/upload/file/${encodeURIComponent(fileName)}`;
+      }
     }
 
     return successResponse(res, {
-      signedUrl: data.signedUrl,
-      fileName: team.ppt_file_name,
-      mimeType: team.ppt_file_type,
+      signedUrl,
+      fileName: team.ppt_file_name || fileName,
+      mimeType: team.ppt_file_type || "application/pdf",
       expiresIn: 3600,
     });
   } catch (err: any) {

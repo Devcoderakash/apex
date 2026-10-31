@@ -51,143 +51,222 @@ const verifySchema = z.object({
   teamId: z.string().optional(),
 });
 
+const standardOrderSchema = z.object({
+  amount: z.coerce.number().min(100, "Amount must be at least 100 paise (₹1.00)"),
+  currency: z.string().default("INR"),
+  receipt: z.string().optional(),
+  notes: z.record(z.string()).optional(),
+});
+
 /**
- * POST /api/payments/create-order or POST /api/payment/create-order
- * Validates registration and creates a pending Razorpay order
+ * POST /api/create-order, POST /api/payments/create-order, POST /api/payment/create-order
+ * Validates order amount (>= 100 paise) and creates a server-side Razorpay order
  */
 export async function createOrder(req: Request, res: Response) {
   try {
-    const parseResult = registrationSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return errorResponse(res, "Validation error", 400, parseResult.error.format());
+    // 1. If standard amount payload is provided (generic / standard checkout)
+    if (req.body.amount !== undefined) {
+      const parseResult = standardOrderSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: "Validation error: amount must be at least 100 paise (₹1.00)",
+          details: parseResult.error.format(),
+        });
+      }
+
+      const { amount, currency, receipt, notes } = parseResult.data;
+      const order = await createRazorpayOrder({
+        amountPaise: amount,
+        currency,
+        receipt,
+        notes,
+      });
+
+      return res.status(200).json({
+        success: true,
+        order_id: order.id,
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        receipt: order.receipt,
+        key_id: config.razorpay.keyId || process.env.VITE_RAZORPAY_KEY_ID || "",
+        keyId: config.razorpay.keyId || process.env.VITE_RAZORPAY_KEY_ID || "",
+      });
     }
 
-    const payload = parseResult.data;
+    // 2. If team registration payload is provided
+    if (req.body.team_name !== undefined) {
+      const parseResult = registrationSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: "Validation error in registration fields",
+          details: parseResult.error.format(),
+        });
+      }
 
-    // 1. Create or retrieve pending record in Supabase
-    const { teamId, playerId, cleanId } = await createPendingRegistration({
-      ...payload,
-      ppt_storage_path: payload.ppt_storage_path,
-      ppt_file_name: payload.ppt_file_name,
-      ppt_file_type: payload.ppt_file_type,
-      ppt_file_size: payload.ppt_file_size,
-    });
+      const payload = parseResult.data;
 
-    // 2. Generate Razorpay order on server (amount always calculated server-side)
-    const receipt = `rcpt_${cleanId.slice(0, 10)}_${Date.now().toString().slice(-4)}`;
-    const rzpOrder = await createRazorpayOrder({
-      amountPaise: REGISTRATION_FEE_PAISE,
-      currency: "INR",
-      receipt,
-      notes: {
-        team_id: teamId,
-        player_id: playerId,
-        team_name: payload.team_name,
-        leader_name: payload.leader_name,
+      // Create or retrieve pending record in Supabase
+      const { teamId, playerId, cleanId } = await createPendingRegistration({
+        ...payload,
+        ppt_storage_path: payload.ppt_storage_path,
+        ppt_file_name: payload.ppt_file_name,
+        ppt_file_type: payload.ppt_file_type,
+        ppt_file_size: payload.ppt_file_size,
+      });
+
+      // Generate Razorpay order on server (₹199 = 19900 paise)
+      const receipt = `rcpt_${cleanId.slice(0, 10)}_${Date.now().toString().slice(-4)}`;
+      const rzpOrder = await createRazorpayOrder({
+        amountPaise: REGISTRATION_FEE_PAISE,
+        currency: "INR",
+        receipt,
+        notes: {
+          team_id: teamId,
+          player_id: playerId,
+          team_name: payload.team_name,
+          leader_name: payload.leader_name,
+          email: payload.email,
+        },
+      });
+
+      const razorpayOrderId = rzpOrder.id;
+      await attachRazorpayOrder(teamId, razorpayOrderId);
+
+      console.log(
+        `[Payment Controller] Created Razorpay order ${razorpayOrderId} for Team ${payload.team_name} (Amount: ₹${REGISTRATION_FEE_INR})`,
+      );
+
+      return res.status(200).json({
+        success: true,
+        order_id: razorpayOrderId,
+        orderId: razorpayOrderId,
+        amount: REGISTRATION_FEE_PAISE,
+        amountInRupees: REGISTRATION_FEE_INR,
+        currency: "INR",
+        key_id: config.razorpay.keyId || process.env.VITE_RAZORPAY_KEY_ID || "",
+        keyId: config.razorpay.keyId || process.env.VITE_RAZORPAY_KEY_ID || "",
+        teamId,
+        playerId,
+        teamName: payload.team_name,
+        leaderName: payload.leader_name,
         email: payload.email,
-      },
-    });
+        phone: payload.phone,
+      });
+    }
 
-    const razorpayOrderId = rzpOrder.id;
-
-    // 3. Attach order id to team record
-    await attachRazorpayOrder(teamId, razorpayOrderId);
-
-    console.log(
-      `[Payment Controller] Created Razorpay order ${razorpayOrderId} for Team ${payload.team_name} (Amount: ₹${REGISTRATION_FEE_INR})`,
-    );
-
-    return successResponse(res, {
-      orderId: razorpayOrderId,
-      amount: REGISTRATION_FEE_PAISE,
-      amountInRupees: REGISTRATION_FEE_INR,
-      currency: "INR",
-      keyId: config.razorpay.keyId || process.env.VITE_RAZORPAY_KEY_ID || "",
-      teamId,
-      playerId,
-      teamName: payload.team_name,
-      leaderName: payload.leader_name,
-      email: payload.email,
-      phone: payload.phone,
+    return res.status(400).json({
+      success: false,
+      error: "Missing required parameters: provide either 'amount' (minimum 100 paise) or team registration fields.",
     });
   } catch (err: any) {
     console.error("[Payment Controller] createOrder Error:", err);
-    return errorResponse(res, err.message || "Failed to create payment order", 500);
+    const statusCode = err.statusCode || (err.message?.includes("credentials") ? 500 : 500);
+    return res.status(statusCode).json({
+      success: false,
+      error: err.message || "Failed to create payment order",
+    });
   }
 }
 
 /**
- * POST /api/payments/verify or POST /api/payment/verify
- * Cryptographically verifies Razorpay HMAC-SHA256 signature and confirms registration
+ * POST /api/verify-payment, POST /api/payments/verify, POST /api/payment/verify
+ * Cryptographically verifies Razorpay HMAC-SHA256 signature
  */
 export async function verifyPayment(req: Request, res: Response) {
   try {
-    const parseResult = verifySchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return errorResponse(res, "Invalid payment verification payload", 400, parseResult.error.format());
-    }
+    const orderId =
+      req.body.razorpay_order_id ||
+      req.body.order_id ||
+      req.body.orderId;
+    const paymentId =
+      req.body.razorpay_payment_id ||
+      req.body.payment_id ||
+      req.body.paymentId;
+    const signature =
+      req.body.razorpay_signature ||
+      req.body.signature;
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = parseResult.data;
-
-    // 1. Find registration record
-    const team = await getTeamByOrderId(razorpay_order_id);
-    if (!team) {
-      console.error(`[Payment Controller] Verification error: Team not found for order ${razorpay_order_id}`);
-      return errorResponse(res, "Registration record not found for this order", 404);
-    }
-
-    // 2. Idempotency check: if already confirmed, return success immediately
-    if (team.payment_status === "paid") {
-      console.log(`[Payment Controller] Order ${razorpay_order_id} already marked as paid.`);
-      return successResponse(res, {
-        success: true,
-        alreadyProcessed: true,
-        status: "paid",
-        playerId: team.player_id,
-        teamName: team.team_name,
-        orderId: razorpay_order_id,
-        paymentId: team.payment_id,
+    if (!orderId || !paymentId || !signature) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required verification fields. order_id, payment_id, and signature are required.",
+        missing: {
+          order_id: !orderId,
+          payment_id: !paymentId,
+          signature: !signature,
+        },
       });
     }
 
-    // 3. Secure HMAC-SHA256 signature verification
+    // Secure HMAC-SHA256 signature verification: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
     const isValid = verifyRazorpaySignature({
-      orderId: razorpay_order_id,
-      paymentId: razorpay_payment_id,
-      signature: razorpay_signature,
+      orderId,
+      paymentId,
+      signature,
     });
 
     if (!isValid) {
-      console.warn(`[Payment Controller] Invalid signature detected for order ${razorpay_order_id}`);
-      await markTeamFailed(razorpay_order_id);
-      return errorResponse(res, "Payment signature verification failed", 400);
+      console.warn(`[Payment Controller] Signature verification failed for order ${orderId}`);
+      await markTeamFailed(orderId).catch(() => {});
+      return res.status(400).json({
+        success: false,
+        error: "Payment verification failed: Invalid signature",
+      });
     }
 
-    // 4. Update team record to paid and approved
-    await markTeamPaid(razorpay_order_id, {
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-    });
+    // Check if linked to team registration in database
+    const team = await getTeamByOrderId(orderId).catch(() => null);
+    if (team) {
+      if (team.payment_status === "paid") {
+        return res.status(200).json({
+          success: true,
+          status: "paid",
+          alreadyProcessed: true,
+          order_id: orderId,
+          payment_id: paymentId,
+          playerId: team.player_id,
+          teamName: team.team_name,
+        });
+      }
 
-    console.log(`[Payment Controller] Payment VERIFIED and confirmed for Team ${team.team_name} (${team.player_id})`);
+      await markTeamPaid(orderId, {
+        razorpay_payment_id: paymentId,
+        razorpay_order_id: orderId,
+        razorpay_signature: signature,
+      });
 
-    // 5. Trigger automated registration confirmation email
-    sendRegistrationConfirmationEmail(team.id || razorpay_order_id).catch((emailErr) => {
-      console.warn("[Payment Controller] Confirmation email trigger notice:", emailErr.message);
-    });
+      sendRegistrationConfirmationEmail(team.id || orderId).catch((emailErr) => {
+        console.warn("[Payment Controller] Confirmation email trigger notice:", emailErr.message);
+      });
 
-    return successResponse(res, {
+      return res.status(200).json({
+        success: true,
+        status: "paid",
+        order_id: orderId,
+        payment_id: paymentId,
+        playerId: team.player_id,
+        teamName: team.team_name,
+        message: "Payment verified and registration confirmed successfully",
+      });
+    }
+
+    // Generic order verification (standalone checkout)
+    return res.status(200).json({
       success: true,
       status: "paid",
-      playerId: team.player_id,
-      teamName: team.team_name,
-      orderId: razorpay_order_id,
-      paymentId: razorpay_payment_id,
+      order_id: orderId,
+      payment_id: paymentId,
+      message: "Payment verified successfully",
     });
   } catch (err: any) {
     console.error("[Payment Controller] verifyPayment Error:", err);
-    return errorResponse(res, err.message || "Failed to verify payment", 500);
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Failed to verify payment",
+    });
   }
 }
 
