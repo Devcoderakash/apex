@@ -5,11 +5,13 @@ import { config } from "../config/env.js";
 let razorpayInstance: Razorpay | null = null;
 
 export function getRazorpayClient(): Razorpay | null {
-  if (config.razorpay.keyId && config.razorpay.keySecret) {
+  const keyId = config.razorpay.keyId || process.env.RAZORPAY_KEY_ID;
+  const keySecret = config.razorpay.keySecret || process.env.RAZORPAY_KEY_SECRET;
+  if (keyId && keySecret) {
     if (!razorpayInstance) {
       razorpayInstance = new Razorpay({
-        key_id: config.razorpay.keyId,
-        key_secret: config.razorpay.keySecret,
+        key_id: keyId,
+        key_secret: keySecret,
       });
     }
     return razorpayInstance;
@@ -52,13 +54,16 @@ export async function createRazorpayOrder(params: CreateOrderParams) {
     return order;
   } catch (apiErr: any) {
     console.error("[Razorpay API Error]", apiErr);
-    const statusCode =
-      apiErr.statusCode ||
-      apiErr.status ||
+    const isAuthError =
+      apiErr.statusCode === 401 ||
+      apiErr.status === 401 ||
+      apiErr.error?.code === "AUTHENTICATION_ERROR" ||
       (apiErr.error?.code === "BAD_REQUEST_ERROR" &&
-      apiErr.error?.description?.toLowerCase().includes("auth")
-        ? 401
-        : 500);
+        (apiErr.error?.description?.toLowerCase().includes("auth") ||
+          apiErr.error?.description?.toLowerCase().includes("key") ||
+          apiErr.error?.description?.toLowerCase().includes("secret")));
+
+    const statusCode = isAuthError ? 401 : 500;
 
     const message =
       apiErr.error?.description ||

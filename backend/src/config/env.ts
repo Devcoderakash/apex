@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
+import path from "node:path";
 
 dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
+dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 export const config = {
   port: Number(process.env.PORT) || 5001,
