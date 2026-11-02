@@ -31,8 +31,8 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 function createSupabaseClient(): SupabaseClient<Database> {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const DEFAULT_URL = "https://vnawxsgxcobfcbywykdb.supabase.co";
-  const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuYXd4c2d4Y29iZmNieXd5a2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDQ1MTEsImV4cCI6MjEwNzQ4MDUxMX0.3-Ts_-XsPmnl3afdbKfuCuOzKL2roA-kpiWwtZ_M8Xc";
+  const DEFAULT_URL = "https://uzhovtxpuqyrtnfzoyuz.supabase.co";
+  const DEFAULT_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6aG92dHhwdXF5cnRuZnpveXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTcxMzgsImV4cCI6MjEwOTE5MzEzOH0.nb680cf8w4QybabLflaTJH0Axp_S6iFOtnAgoelStLY";
 
   const SUPABASE_URL = String(import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'] || DEFAULT_URL);
   const SUPABASE_PUBLISHABLE_KEY = String(import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || DEFAULT_KEY);
