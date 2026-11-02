@@ -2,6 +2,10 @@
 
 A full-stack web application for the APEX 1.0 hackathon, featuring team registration, Cashfree payment integration, and an admin dashboard.
 
+## Live Demo
+
+Visit the deployed app: https://apexhack.online
+
 ## Project Structure
 
 ```
@@ -78,28 +82,28 @@ npm run build
 ## API Endpoints
 
 | Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | Health check |
-| POST | `/api/payment/create-order` | Register team + create Cashfree order |
-| POST | `/api/payment/verify` | Verify payment status |
-| GET | `/api/payment/order/:id` | Get order/team by order ID |
-| POST | `/api/payment/webhook` | Cashfree webhook handler |
-| GET | `/api/admin/registrations` | List all registrations |
-| GET | `/api/admin/stats` | Dashboard statistics |
-| PATCH | `/api/admin/teams/:id/status` | Update team status |
-| DELETE | `/api/admin/teams/:id` | Delete a team |
-| GET | `/api/admin/settings` | Get event settings |
-| POST | `/api/admin/settings` | Update event settings |
+| |--------|------|-------------|
+| | GET | `/api/health` | Health check |
+| | POST | `/api/payment/create-order` | Register team + create Cashfree order |
+| | POST | `/api/payment/verify` | Verify payment status |
+| | GET | `/api/payment/order/:id` | Get order/team by order ID |
+| | POST | `/api/payment/webhook` | Cashfree webhook handler |
+| | GET | `/api/admin/registrations` | List all registrations |
+| | GET | `/api/admin/stats` | Dashboard statistics |
+| | PATCH | `/api/admin/teams/:id/status` | Update team status |
+| | DELETE | `/api/admin/teams/:id` | Delete a team |
+| | GET | `/api/admin/settings` | Get event settings |
+| | POST | `/api/admin/settings` | Update event settings |
 
 ## Frontend Routes
 
 | Route | Page |
-|-------|------|
-| `/` | Home |
-| `/register` | Registration + payment |
-| `/success` | Payment confirmation |
-| `/rules` | Hackathon rules |
-| `/prizes` | Prize information |
-| `/faq` | FAQ |
-| `/admin` | Admin dashboard |
-| `/admin/registrations` | Manage registrations |
+| |-------|------|
+| | `/` | Home |
+| | `/register` | Registration + payment |
+| | `/success` | Payment confirmation |
+| | `/rules` | Hackathon rules |
+| | `/prizes` | Prize information |
+| | `/faq` | FAQ |
+| | `/admin` | Admin dashboard |
+| | `/admin/registrations` | Manage registrations |
