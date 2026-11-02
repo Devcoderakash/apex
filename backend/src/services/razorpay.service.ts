@@ -51,9 +51,22 @@ export async function createRazorpayOrder(params: CreateOrderParams) {
 
   try {
     const order = await razorpay.orders.create(orderOptions);
+    const keyId = config.razorpay.keyId || process.env.RAZORPAY_KEY_ID;
+    const mode = keyId?.startsWith("rzp_live_") ? "LIVE" : "TEST";
+    console.log(`[Razorpay Service] Order created: ${order.id} | Mode: ${mode} | Amount: ₹${Number(order.amount) / 100} | Key: ${keyId?.slice(0, 8)}...`);
     return order;
   } catch (apiErr: any) {
-    console.error("[Razorpay API Error]", apiErr);
+    // Safely log the exact Razorpay API error response without exposing keys or secrets
+    const safeErrorLog = {
+      statusCode: apiErr.statusCode || apiErr.status,
+      code: apiErr.error?.code,
+      description: apiErr.error?.description,
+      source: apiErr.error?.source,
+      step: apiErr.error?.step,
+      reason: apiErr.error?.reason,
+      field: apiErr.error?.field,
+    };
+    console.error("[Razorpay API Error Response]", JSON.stringify(safeErrorLog, null, 2));
     const isAuthError =
       apiErr.statusCode === 401 ||
       apiErr.status === 401 ||

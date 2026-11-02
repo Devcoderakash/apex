@@ -59,9 +59,16 @@ export async function createOrder(
       if (response.ok) {
         return responseData.data || responseData;
       }
+      throw new Error(responseData?.error || responseData?.message || `Server returned error (${response.status})`);
+    } else if (!response.ok) {
+      throw new Error(`Server returned HTTP ${response.status}`);
     }
-  } catch (backendErr) {
-    console.warn("[Order] Backend unavailable, using direct Supabase registration:", backendErr);
+  } catch (backendErr: any) {
+    console.error("[Order] Backend order creation error:", backendErr);
+    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
+      throw backendErr;
+    }
+    console.warn("[Order] Backend network unavailable, using direct Supabase registration:", backendErr);
   }
 
   // Direct Supabase Registration
@@ -157,9 +164,16 @@ export async function verifyPayment(params: VerifyPaymentPayload): Promise<{
       if (response.ok) {
         return responseData.data || responseData;
       }
+      throw new Error(responseData?.error || responseData?.message || `Payment verification failed (${response.status})`);
+    } else if (!response.ok) {
+      throw new Error(`Verification server returned HTTP ${response.status}`);
     }
-  } catch (backendErr) {
-    console.warn("[Payment] Backend verify failed, updating Supabase directly:", backendErr);
+  } catch (backendErr: any) {
+    console.error("[Payment] Backend verify error:", backendErr);
+    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
+      throw backendErr;
+    }
+    console.warn("[Payment] Backend verify network unavailable, attempting direct Supabase:", backendErr);
   }
 
   // Direct Supabase update

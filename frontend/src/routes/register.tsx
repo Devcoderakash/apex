@@ -289,6 +289,7 @@ function RegisterPage() {
 
       const keyId =
         orderData.keyId ||
+        (orderData as any).key_id ||
         import.meta.env.VITE_RAZORPAY_KEY_ID ||
         "";
 

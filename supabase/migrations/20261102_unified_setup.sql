@@ -293,3 +293,4 @@ CREATE POLICY "Allow public select on registration_emails"
 
 -- Done!
 SELECT 'Database & Storage Setup Completed Successfully!' AS status;
+
