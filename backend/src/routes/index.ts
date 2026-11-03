@@ -4,6 +4,7 @@ import { paymentRouter } from "./payment.routes.js";
 import { registrationRouter } from "./registration.routes.js";
 import { uploadRouter } from "./upload.routes.js";
 import { emailRouter } from "./email.routes.js";
+import { grievanceRouter, privacyRouter } from "./compliance.routes.js";
 import { createOrder, verifyPayment } from "../controllers/payment.controller.js";
 
 export const apiRouter = Router();
@@ -48,4 +49,10 @@ apiRouter.use("/upload", uploadRouter);
 // Automated Confirmation Emails
 apiRouter.use("/email", emailRouter);
 apiRouter.use("/emails", emailRouter);
+
+// DPDP Compliance: Grievances & Privacy Requests
+apiRouter.use("/grievance", grievanceRouter);
+apiRouter.use("/grievances", grievanceRouter);
+apiRouter.use("/privacy-requests", privacyRouter);
+
 

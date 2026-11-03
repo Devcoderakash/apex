@@ -48,6 +48,23 @@ import { loadRazorpayScript } from "@/lib/razorpay";
 import { createOrder, verifyPayment, uploadPptFile } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
+const safeLinkValidator = (val?: string) => {
+  if (!val || !val.trim()) return true;
+  const clean = val.trim().toLowerCase();
+  if (clean.startsWith("javascript:") || clean.startsWith("data:") || clean.startsWith("vbscript:")) {
+    return false;
+  }
+  return true;
+};
+
+const safeLinkSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .optional()
+  .or(z.literal(""))
+  .refine(safeLinkValidator, "Invalid or unsafe link. Javascript and data URIs are prohibited.");
+
 const schema = z
   .object({
     team_name: z.string().trim().min(2, "Team name is required").max(80),
@@ -61,30 +78,24 @@ const schema = z
     member3: z.string().trim().max(80).optional().or(z.literal("")),
     member4: z.string().trim().max(80).optional().or(z.literal("")),
     preferred_domain: z.string().trim().max(120).optional().or(z.literal("")),
-    github_url: z
-      .string()
-      .trim()
-      .max(255)
-      .optional()
-      .or(z.literal(""))
-      .refine(
-        (val) => !val || /^https?:\/\//i.test(val),
-        "Enter a valid URL (starting with http:// or https://)",
-      ),
-    linkedin_url: z
-      .string()
-      .trim()
-      .max(255)
-      .optional()
-      .or(z.literal(""))
-      .refine(
-        (val) => !val || /^https?:\/\//i.test(val),
-        "Enter a valid URL (starting with http:// or https://)",
-      ),
+    github_url: safeLinkSchema,
+    linkedin_url: safeLinkSchema,
+    project_title: z.string().trim().max(150).optional().or(z.literal("")),
+    project_description: z.string().trim().max(1000).optional().or(z.literal("")),
+    problem_statement: z.string().trim().max(1000).optional().or(z.literal("")),
+    proposed_solution: z.string().trim().max(1000).optional().or(z.literal("")),
+    tech_stack: z.string().trim().max(300).optional().or(z.literal("")),
+    expected_impact: z.string().trim().max(500).optional().or(z.literal("")),
+    demo_url: safeLinkSchema,
+    portfolio_url: safeLinkSchema,
+    other_links: safeLinkSchema,
     ppt_url: z.string().trim().min(1, "Please upload your idea presentation (PPT or PDF)").max(500),
     terms: z.literal(true, {
       errorMap: () => ({ message: "You must accept the APEX 1.0 rules, terms, and privacy policy" }),
     }),
+    consent_marketing_email: z.boolean().default(false),
+    consent_marketing_sms: z.boolean().default(false),
+    consent_marketing_whatsapp: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
     const size = Number(data.team_size);
@@ -245,8 +256,20 @@ function RegisterPage() {
       preferred_domain: "",
       github_url: "",
       linkedin_url: "",
+      project_title: "",
+      project_description: "",
+      problem_statement: "",
+      proposed_solution: "",
+      tech_stack: "",
+      expected_impact: "",
+      demo_url: "",
+      portfolio_url: "",
+      other_links: "",
       ppt_url: "",
       terms: false as unknown as true,
+      consent_marketing_email: false,
+      consent_marketing_sms: false,
+      consent_marketing_whatsapp: false,
     },
   });
 
@@ -276,6 +299,19 @@ function RegisterPage() {
         ...(values.preferred_domain !== undefined && { preferred_domain: values.preferred_domain }),
         ...(values.github_url !== undefined && { github_url: values.github_url }),
         ...(values.linkedin_url !== undefined && { linkedin_url: values.linkedin_url }),
+        ...(values.project_title !== undefined && { project_title: values.project_title }),
+        ...(values.project_description !== undefined && { project_description: values.project_description }),
+        ...(values.problem_statement !== undefined && { problem_statement: values.problem_statement }),
+        ...(values.proposed_solution !== undefined && { proposed_solution: values.proposed_solution }),
+        ...(values.tech_stack !== undefined && { tech_stack: values.tech_stack }),
+        ...(values.expected_impact !== undefined && { expected_impact: values.expected_impact }),
+        ...(values.demo_url !== undefined && { demo_url: values.demo_url }),
+        ...(values.portfolio_url !== undefined && { portfolio_url: values.portfolio_url }),
+        ...(values.other_links !== undefined && { other_links: values.other_links }),
+        consent_service: true,
+        consent_marketing_email: values.consent_marketing_email,
+        consent_marketing_sms: values.consent_marketing_sms,
+        consent_marketing_whatsapp: values.consent_marketing_whatsapp,
         members,
       });
 
@@ -646,7 +682,7 @@ function RegisterPage() {
                   {/* SECTION 03 – PROFILE */}
                   <div className="w-full min-w-0 max-w-full">
                     <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
-                      <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">SECTION_03 / PROFILE</SystemLabel>
+                      <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">SECTION_03 / PROFILE & LINKS</SystemLabel>
                       <div className="h-px flex-1 bg-border/40" />
                       <span className="font-mono text-[0.55rem] sm:text-[0.6rem] tracking-widest text-muted-foreground shrink-0">
                         OPTIONAL
@@ -654,16 +690,40 @@ function RegisterPage() {
                     </div>
                     <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                       <Field form={form} name="preferred_domain" label="PREFERRED DOMAIN" placeholder="e.g. AI / Web3 / Fintech" />
-                      <Field form={form} name="github_url" label="GITHUB" placeholder="https://github.com/..." />
-                      <Field form={form} name="linkedin_url" label="LINKEDIN" placeholder="https://linkedin.com/..." />
+                      <Field form={form} name="github_url" label="GITHUB URL" placeholder="https://github.com/..." />
+                      <Field form={form} name="linkedin_url" label="LINKEDIN URL" placeholder="https://linkedin.com/in/..." />
                     </div>
                   </div>
 
-                  {/* SECTION 04 – IDEA SUBMISSION (UPLOAD) */}
+                  {/* SECTION 04 – PROJECT DETAILS */}
+                  <div className="w-full min-w-0 max-w-full">
+                    <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
+                      <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">SECTION_04 / PROJECT BRIEF</SystemLabel>
+                      <div className="h-px flex-1 bg-border/40" />
+                      <span className="font-mono text-[0.55rem] sm:text-[0.6rem] tracking-widest text-muted-foreground shrink-0">
+                        OPTIONAL
+                      </span>
+                    </div>
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                      <Field form={form} name="project_title" label="PROJECT / IDEA TITLE" placeholder="e.g. MedAI Diagnostics Platform" />
+                      <Field form={form} name="tech_stack" label="TECHNOLOGY STACK" placeholder="e.g. React, Node.js, Python, Supabase" />
+                    </div>
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 mt-3">
+                      <Field form={form} name="problem_statement" label="PROBLEM STATEMENT" placeholder="What challenge does this solve?" />
+                      <Field form={form} name="proposed_solution" label="PROPOSED SOLUTION" placeholder="How does your solution work?" />
+                    </div>
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3 mt-3">
+                      <Field form={form} name="demo_url" label="LIVE DEMO / PROTOTYPE URL" placeholder="https://..." />
+                      <Field form={form} name="portfolio_url" label="PITCH DECK / PORTFOLIO URL" placeholder="https://..." />
+                      <Field form={form} name="other_links" label="ADDITIONAL LINKS" placeholder="https://..." />
+                    </div>
+                  </div>
+
+                  {/* SECTION 05 – IDEA SUBMISSION (UPLOAD) */}
                   <div className="w-full min-w-0 max-w-full">
                     <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
                       <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">
-                        SECTION_04 / IDEA UPLOAD
+                        SECTION_05 / IDEA UPLOAD
                       </SystemLabel>
                       <div className="h-px flex-1 bg-border/40" />
                     </div>
@@ -816,37 +876,82 @@ function RegisterPage() {
                   </div>
 
                   {/* Terms & Policies Acceptance */}
-                  <div className="flex items-start gap-3 w-full min-w-0">
-                    <Checkbox
-                      id="terms"
-                      checked={terms === true}
-                      onCheckedChange={(v) =>
-                        form.setValue("terms", (v === true) as true, { shouldValidate: true })
-                      }
-                      aria-label="Accept terms and conditions"
-                      className="mt-1 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <label htmlFor="terms" className="text-xs sm:text-sm text-muted-foreground cursor-pointer leading-relaxed break-words block">
-                        I and my team members have read and agree to the{" "}
-                        <a href="/rules" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
-                          Official Rules
-                        </a>
-                        ,{" "}
-                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
-                          Terms & Conditions
-                        </a>
-                        , and{" "}
-                        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
-                          Privacy Policy
-                        </a>
-                        .
-                      </label>
-                      {form.formState.errors.terms ? (
-                        <p className="mt-1 font-mono text-[0.7rem] text-destructive break-words">
-                          {form.formState.errors.terms.message}
-                        </p>
-                      ) : null}
+                  <div className="space-y-3 w-full min-w-0">
+                    <div className="flex items-start gap-3 w-full min-w-0">
+                      <Checkbox
+                        id="terms"
+                        checked={terms === true}
+                        onCheckedChange={(v) =>
+                          form.setValue("terms", (v === true) as true, { shouldValidate: true })
+                        }
+                        aria-label="Accept terms and conditions"
+                        className="mt-1 shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <label htmlFor="terms" className="text-xs sm:text-sm text-foreground cursor-pointer leading-relaxed break-words block font-medium">
+                          I and my team members have read and agree to the{" "}
+                          <a href="/rules" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                            Official Rules
+                          </a>
+                          ,{" "}
+                          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                            Terms & Conditions
+                          </a>
+                          , and{" "}
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                            Privacy Policy
+                          </a>
+                          . <span className="text-destructive">*</span>
+                        </label>
+                        {form.formState.errors.terms ? (
+                          <p className="mt-1 font-mono text-[0.7rem] text-destructive break-words">
+                            {form.formState.errors.terms.message}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {/* Decoupled Optional Marketing Consents (DPDP Act 2023) */}
+                    <div className="rounded-lg border border-border/40 bg-card/25 p-3 space-y-2.5">
+                      <p className="font-mono text-[0.65rem] tracking-wider text-muted-foreground uppercase">
+                        OPTIONAL COMMUNICATIONS (DECOUPLED PURSUANT TO DPDP ACT 2023)
+                      </p>
+
+                      <div className="flex items-start gap-2.5">
+                        <Checkbox
+                          id="consent_email"
+                          checked={form.watch("consent_marketing_email") === true}
+                          onCheckedChange={(v) => form.setValue("consent_marketing_email", v === true)}
+                          className="mt-0.5 shrink-0"
+                        />
+                        <label htmlFor="consent_email" className="text-[0.75rem] text-muted-foreground cursor-pointer leading-relaxed">
+                          Receive hackathon newsletters, mentorship invitations, and sponsor partner opportunities via Email.
+                        </label>
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <Checkbox
+                          id="consent_sms"
+                          checked={form.watch("consent_marketing_sms") === true}
+                          onCheckedChange={(v) => form.setValue("consent_marketing_sms", v === true)}
+                          className="mt-0.5 shrink-0"
+                        />
+                        <label htmlFor="consent_sms" className="text-[0.75rem] text-muted-foreground cursor-pointer leading-relaxed">
+                          Receive critical schedule alerts and shortlisting announcements via SMS.
+                        </label>
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <Checkbox
+                          id="consent_whatsapp"
+                          checked={form.watch("consent_marketing_whatsapp") === true}
+                          onCheckedChange={(v) => form.setValue("consent_marketing_whatsapp", v === true)}
+                          className="mt-0.5 shrink-0"
+                        />
+                        <label htmlFor="consent_whatsapp" className="text-[0.75rem] text-muted-foreground cursor-pointer leading-relaxed">
+                          Receive fast-track updates, community access, and mentor room links via WhatsApp.
+                        </label>
+                      </div>
                     </div>
                   </div>
 

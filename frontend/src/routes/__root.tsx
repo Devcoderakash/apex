@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteNav } from "@/components/site/site-nav";
 import { AmbientBackground } from "@/components/site/ambient-background";
+import { CookieConsentBanner } from "@/components/site/cookie-consent-banner";
 import { reportClientError } from "../lib/error-reporting";
 
 function NotFoundComponent() {
@@ -99,6 +100,7 @@ function RootComponent() {
         <Outlet />
       </main>
       {isAdmin ? null : <SiteFooter />}
+      <CookieConsentBanner />
       <Toaster />
     </QueryClientProvider>
   );

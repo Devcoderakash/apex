@@ -33,11 +33,27 @@ const registrationSchema = z.object({
   preferred_domain: z.string().optional(),
   github_url: z.string().optional(),
   linkedin_url: z.string().optional(),
+  project_title: z.string().optional(),
+  project_description: z.string().optional(),
+  problem_statement: z.string().optional(),
+  proposed_solution: z.string().optional(),
+  tech_stack: z.string().optional(),
+  expected_impact: z.string().optional(),
+  demo_url: z.string().optional(),
+  portfolio_url: z.string().optional(),
+  other_links: z.string().optional(),
+  consent_service: z.boolean().optional().default(true),
+  consent_marketing_email: z.boolean().optional().default(false),
+  consent_marketing_sms: z.boolean().optional().default(false),
+  consent_marketing_whatsapp: z.boolean().optional().default(false),
   members: z
     .array(
       z.object({
         full_name: z.string().min(1),
         position: z.number().default(1),
+        email: z.string().optional(),
+        phone: z.string().optional(),
+        college: z.string().optional(),
       }),
     )
     .optional()

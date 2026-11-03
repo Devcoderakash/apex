@@ -239,31 +239,35 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                       <tr>
                         <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF; width: 40%;">Event:</td>
-                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF; font-weight: 600;">APEX//1.0</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF; font-weight: 600;">APEX 1.0 National Hackathon</td>
                       </tr>
                       <tr>
-                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Format:</td>
-                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">Open Innovation</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Organizer:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">The Innovation League, Bhopal</td>
                       </tr>
                       <tr>
-                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Round 1 Date:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Official Website:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #00E5FF;"><a href="https://apexhack.online" style="color: #00E5FF; text-decoration: none;">https://apexhack.online</a></td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Online Submission:</td>
                         <td style="padding: 5px 0; font-size: 12px; color: #FF1744; font-weight: 700;">25 November 2026</td>
                       </tr>
                       <tr>
-                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Round 1 Type:</td>
-                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">Shortlisting Round</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Shortlist Announcement:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">30 November 2026</td>
                       </tr>
                       <tr>
-                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Round 2:</td>
-                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">Offline Grand Finale — Date To Be Announced</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Grand Finale:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #10B981; font-weight: 700;">10 December 2026</td>
                       </tr>
                       <tr>
-                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Location:</td>
-                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">Bhopal, Madhya Pradesh</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Finale Venue:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">Bhopal, Madhya Pradesh (Communicated to shortlisted teams)</td>
                       </tr>
                     </table>
                     <div style="margin-top: 12px; padding: 10px 12px; background-color: rgba(0, 229, 255, 0.05); border-left: 2px solid #00E5FF; font-size: 11px; color: #E5E7EB; line-height: 17px;">
-                      Your idea will be evaluated during the Round 1 shortlisting process. Further instructions and shortlist updates will be communicated through official channels.
+                      Your submission will be evaluated across Innovation, Technical Implementation, Practical Feasibility, and Presentation. Physical participation is expected for the Grand Finale; online presentation may be requested with prior organizer approval.
                     </div>
                   </td>
                 </tr>
@@ -345,14 +349,15 @@ Payment Status  : ${paymentDisplay}
 --------------------------------------------------
 EVENT SCHEDULE & FORMAT
 --------------------------------------------------
-Event           : APEX//1.0
-Format          : Open Innovation
-Round 1 Date    : 25 November 2026
-Round 1 Type    : Shortlisting Round
-Round 2         : Offline Grand Finale — Date To Be Announced
-Location        : Bhopal, Madhya Pradesh
+Event           : APEX 1.0 National Hackathon
+Organizer       : The Innovation League, Bhopal
+Official Website: https://apexhack.online
+Online Sub. Date: 25 November 2026
+Shortlist Date  : 30 November 2026
+Grand Finale    : 10 December 2026
+Location        : Bhopal, Madhya Pradesh (Communicated to shortlisted teams)
 
-Your idea will be evaluated during the Round 1 shortlisting process. Further instructions and shortlist updates will be communicated through official channels.
+Your idea will be evaluated across Innovation, Technical Implementation, Feasibility, and Presentation. Physical participation is expected for the Grand Finale; online presentation may be requested with prior organizer approval.
 
 --------------------------------------------------
 IMPORTANT NOTICE
@@ -363,9 +368,8 @@ Please keep your Registration ID safe for future communication. This email confi
 ONE IDEA. NO LIMITS.
 BUILD. SOLVE. INNOVATE. TOGETHER.
 
-APEX//1.0 Organizing Team
-Bhopal, Madhya Pradesh
-lodhiakash286@gmail.com
+The Innovation League, Bhopal
+Official Website: https://apexhack.online
 
 This is an automated registration confirmation email. Please contact the organizing team for assistance.
 ==================================================`;

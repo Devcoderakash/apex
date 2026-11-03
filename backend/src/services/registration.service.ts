@@ -19,7 +19,26 @@ export interface RegisterTeamInput {
   preferred_domain?: string;
   github_url?: string;
   linkedin_url?: string;
-  members: { full_name: string; position: number }[];
+  project_title?: string;
+  project_description?: string;
+  problem_statement?: string;
+  proposed_solution?: string;
+  tech_stack?: string;
+  expected_impact?: string;
+  demo_url?: string;
+  portfolio_url?: string;
+  other_links?: string;
+  consent_service?: boolean;
+  consent_marketing_email?: boolean;
+  consent_marketing_sms?: boolean;
+  consent_marketing_whatsapp?: boolean;
+  members: {
+    full_name: string;
+    position: number;
+    email?: string;
+    phone?: string;
+    college?: string;
+  }[];
 }
 
 // Resilient memory cache (ensures app works smoothly even if Supabase schema cache is warming up or table is pending)
@@ -83,6 +102,20 @@ export async function createPendingRegistration(payload: RegisterTeamInput) {
       preferred_domain: payload.preferred_domain || null,
       github_url: payload.github_url || null,
       linkedin_url: payload.linkedin_url || null,
+      project_title: payload.project_title || null,
+      project_description: payload.project_description || null,
+      problem_statement: payload.problem_statement || null,
+      proposed_solution: payload.proposed_solution || null,
+      tech_stack: payload.tech_stack || null,
+      expected_impact: payload.expected_impact || null,
+      demo_url: payload.demo_url || null,
+      portfolio_url: payload.portfolio_url || null,
+      other_links: payload.other_links || null,
+      consent_version: "2026.1",
+      consent_service: payload.consent_service !== false,
+      consent_marketing_email: Boolean(payload.consent_marketing_email),
+      consent_marketing_sms: Boolean(payload.consent_marketing_sms),
+      consent_marketing_whatsapp: Boolean(payload.consent_marketing_whatsapp),
       payment_status: "pending",
       payment_amount: REGISTRATION_FEE_PAISE,
       payment_currency: "INR",
@@ -148,9 +181,20 @@ export async function createPendingRegistration(payload: RegisterTeamInput) {
     ppt_file_name: payload.ppt_file_name || null,
     ppt_file_type: payload.ppt_file_type || null,
     ppt_file_size: payload.ppt_file_size || null,
-    preferred_domain: payload.preferred_domain || null,
-    github_url: payload.github_url || null,
-    linkedin_url: payload.linkedin_url || null,
+    project_title: payload.project_title || null,
+    project_description: payload.project_description || null,
+    problem_statement: payload.problem_statement || null,
+    proposed_solution: payload.proposed_solution || null,
+    tech_stack: payload.tech_stack || null,
+    expected_impact: payload.expected_impact || null,
+    demo_url: payload.demo_url || null,
+    portfolio_url: payload.portfolio_url || null,
+    other_links: payload.other_links || null,
+    consent_version: "2026.1",
+    consent_service: payload.consent_service !== false,
+    consent_marketing_email: Boolean(payload.consent_marketing_email),
+    consent_marketing_sms: Boolean(payload.consent_marketing_sms),
+    consent_marketing_whatsapp: Boolean(payload.consent_marketing_whatsapp),
     payment_status: "pending",
     payment_amount: REGISTRATION_FEE_PAISE,
     payment_currency: "INR",
@@ -183,6 +227,20 @@ export async function createPendingRegistration(payload: RegisterTeamInput) {
       preferred_domain: payload.preferred_domain || null,
       github_url: payload.github_url || null,
       linkedin_url: payload.linkedin_url || null,
+      project_title: payload.project_title || null,
+      project_description: payload.project_description || null,
+      problem_statement: payload.problem_statement || null,
+      proposed_solution: payload.proposed_solution || null,
+      tech_stack: payload.tech_stack || null,
+      expected_impact: payload.expected_impact || null,
+      demo_url: payload.demo_url || null,
+      portfolio_url: payload.portfolio_url || null,
+      other_links: payload.other_links || null,
+      consent_version: "2026.1",
+      consent_service: payload.consent_service !== false,
+      consent_marketing_email: Boolean(payload.consent_marketing_email),
+      consent_marketing_sms: Boolean(payload.consent_marketing_sms),
+      consent_marketing_whatsapp: Boolean(payload.consent_marketing_whatsapp),
       payment_status: "pending",
       payment_amount: REGISTRATION_FEE_PAISE,
       payment_currency: "INR",
@@ -198,6 +256,58 @@ export async function createPendingRegistration(payload: RegisterTeamInput) {
       }));
       await supabase.from("team_members").insert(membersToInsert);
     }
+
+    // DPDP Act: Audit-logged purpose-specific consent
+    const consentEntries = [
+      {
+        team_id: teamId,
+        player_id: playerId,
+        email: normEmail,
+        consent_purpose: "service_essential",
+        consent_given: true,
+        consent_version: "2026.1",
+      },
+      ...(payload.consent_marketing_email
+        ? [
+            {
+              team_id: teamId,
+              player_id: playerId,
+              email: normEmail,
+              consent_purpose: "marketing_email",
+              consent_given: true,
+              consent_version: "2026.1",
+            },
+          ]
+        : []),
+      ...(payload.consent_marketing_sms
+        ? [
+            {
+              team_id: teamId,
+              player_id: playerId,
+              email: normEmail,
+              consent_purpose: "marketing_sms",
+              consent_given: true,
+              consent_version: "2026.1",
+            },
+          ]
+        : []),
+      ...(payload.consent_marketing_whatsapp
+        ? [
+            {
+              team_id: teamId,
+              player_id: playerId,
+              email: normEmail,
+              consent_purpose: "marketing_whatsapp",
+              consent_given: true,
+              consent_version: "2026.1",
+            },
+          ]
+        : []),
+    ];
+
+    try {
+      await supabase.from("consent_records").insert(consentEntries as any);
+    } catch {}
   } catch (err: any) {
     console.warn("[Registration Service] Supabase unreachable or table pending, preserved in local storage:", err.message);
   }

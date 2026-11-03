@@ -27,9 +27,28 @@ export interface CreateOrderPayload {
   ppt_file_type?: string;
   ppt_file_size?: number;
   preferred_domain?: string;
+  project_title?: string;
+  project_description?: string;
+  problem_statement?: string;
+  proposed_solution?: string;
+  tech_stack?: string;
+  expected_impact?: string;
   github_url?: string;
   linkedin_url?: string;
-  members: { full_name: string; position: number }[];
+  demo_url?: string;
+  portfolio_url?: string;
+  other_links?: string;
+  consent_service?: boolean;
+  consent_marketing_email?: boolean;
+  consent_marketing_sms?: boolean;
+  consent_marketing_whatsapp?: boolean;
+  members: {
+    full_name: string;
+    email?: string;
+    phone?: string;
+    college?: string;
+    position: number;
+  }[];
 }
 
 export interface PaymentOrderResponse {
@@ -419,6 +438,7 @@ export async function getAdminPptSignedUrl(
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(teamId)}/ppt-url`,
+      { headers: getAdminHeaders() },
     );
     if (response.ok) {
       const contentType = response.headers.get("content-type") || "";
@@ -437,7 +457,9 @@ export async function getAdminPptSignedUrl(
  */
 export async function getAdminRegistrations(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/registrations`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/registrations`, {
+      headers: getAdminHeaders(),
+    });
     if (response.ok) {
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -467,7 +489,7 @@ export async function updateAdminTeamStatus(id: string, status: string): Promise
       `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}/status`,
       {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify({ status }),
       },
     );
@@ -500,7 +522,7 @@ export async function updateAdminTeam(id: string, teamData: any): Promise<any> {
       `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
       {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAdminHeaders(),
         body: JSON.stringify(teamData),
       },
     );
@@ -533,6 +555,7 @@ export async function deleteAdminTeam(id: string): Promise<any> {
       `${API_BASE_URL}/api/admin/teams/${encodeURIComponent(id)}`,
       {
         method: "DELETE",
+        headers: getAdminHeaders(),
       },
     );
     if (response.ok) {
@@ -560,7 +583,9 @@ export async function getAdminStats(): Promise<{
   totalParticipants: number;
 }> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/stats`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+      headers: getAdminHeaders(),
+    });
     if (response.ok) {
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -592,7 +617,9 @@ export async function getAdminStats(): Promise<{
  */
 export async function getAdminSettings(): Promise<any> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/settings`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
+      headers: getAdminHeaders(),
+    });
     if (response.ok) {
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -613,7 +640,7 @@ export async function updateAdminSettings(settings: any): Promise<any> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/admin/settings`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminHeaders(),
       body: JSON.stringify(settings),
     });
     if (response.ok) {
@@ -756,6 +783,98 @@ export async function verifyStandardPayment(params: {
   }
 
   return data;
+}
+
+/**
+ * Returns authorization headers for admin requests using stored session token.
+ */
+export function getAdminHeaders(): Record<string, string> {
+  const token =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("apex_admin_token") || ""
+      : "";
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+/**
+ * DPDP Act: Submit a formal grievance
+ */
+export async function submitGrievance(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  player_id?: string;
+  category: string;
+  description: string;
+}): Promise<{ success: boolean; complaintId: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/grievance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data || json;
+    }
+  } catch {}
+
+  const complaintId = `GRV-${Math.floor(1000 + Math.random() * 9000)}`;
+  try {
+    await supabase.from("grievances").insert({
+      complaint_id: complaintId,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      player_id: data.player_id || null,
+      category: data.category,
+      description: data.description,
+    } as any);
+  } catch {}
+
+  return { success: true, complaintId };
+}
+
+/**
+ * DPDP Act: Submit a data principal privacy request (Access, Correction, Erasure)
+ */
+export async function submitPrivacyRequest(data: {
+  request_type: string;
+  name: string;
+  email: string;
+  phone?: string;
+  player_id?: string;
+  request_details: string;
+}): Promise<{ success: boolean; requestId: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/privacy-requests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return json.data || json;
+    }
+  } catch {}
+
+  const requestId = `PRV-${Math.floor(1000 + Math.random() * 9000)}`;
+  try {
+    await supabase.from("privacy_requests").insert({
+      request_id: requestId,
+      request_type: data.request_type,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      player_id: data.player_id || null,
+      request_details: data.request_details,
+    } as any);
+  } catch {}
+
+  return { success: true, requestId };
 }
 
 
