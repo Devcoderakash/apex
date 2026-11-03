@@ -10,7 +10,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { RazorpayCheckoutButton } from "@/components/RazorpayCheckoutButton";
 import {
   Dialog,
   DialogContent,
@@ -1120,17 +1119,12 @@ export function FinalCta() {
           ))}
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-8 flex items-center justify-center">
           <Button asChild size="lg" className="group glow-primary font-mono text-xs tracking-[0.2em] w-full sm:w-auto min-h-[44px]">
             <Link to="/register">
               ENTER THE HACKATHON <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </Button>
-          <RazorpayCheckoutButton
-            amountInPaise={19900}
-            buttonText="TEST RAZORPAY CHECKOUT (₹199)"
-            className="w-full sm:w-auto min-h-[44px] bg-red-600/90 hover:bg-red-600 text-white font-mono text-xs tracking-[0.15em] border border-red-500/50 shadow-lg shadow-red-950/50"
-          />
         </div>
       </div>
     </section>
