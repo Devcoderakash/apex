@@ -193,3 +193,4 @@ export async function getPrivacyRequestStatusHandler(req: Request, res: Response
     return res.status(500).json({ success: false, error: "Failed to look up request" });
   }
 }
+

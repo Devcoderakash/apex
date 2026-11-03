@@ -13,3 +13,4 @@ grievanceRouter.get("/:id", getGrievanceStatusHandler);
 export const privacyRouter = Router();
 privacyRouter.post("/", submitPrivacyRequestHandler);
 privacyRouter.get("/:id", getPrivacyRequestStatusHandler);
+

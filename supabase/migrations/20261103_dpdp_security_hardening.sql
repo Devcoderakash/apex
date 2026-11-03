@@ -160,3 +160,4 @@ ON CONFLICT (id) DO UPDATE SET
   prize_pool = '30000',
   contact_email = 'support@apexhack.online',
   updated_at = now();
+
