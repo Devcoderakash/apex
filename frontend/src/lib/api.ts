@@ -835,7 +835,7 @@ export async function submitGrievance(data: {
 
   const complaintId = `GRV-${Math.floor(1000 + Math.random() * 9000)}`;
   try {
-    await supabase.from("grievances").insert({
+    await (supabase as any).from("grievances").insert({
       complaint_id: complaintId,
       name: data.name,
       email: data.email,
@@ -843,7 +843,7 @@ export async function submitGrievance(data: {
       player_id: data.player_id || null,
       category: data.category,
       description: data.description,
-    } as any);
+    });
   } catch {}
 
   return { success: true, complaintId };
@@ -874,7 +874,7 @@ export async function submitPrivacyRequest(data: {
 
   const requestId = `PRV-${Math.floor(1000 + Math.random() * 9000)}`;
   try {
-    await supabase.from("privacy_requests").insert({
+    await (supabase as any).from("privacy_requests").insert({
       request_id: requestId,
       request_type: data.request_type,
       name: data.name,
@@ -882,7 +882,7 @@ export async function submitPrivacyRequest(data: {
       phone: data.phone || null,
       player_id: data.player_id || null,
       request_details: data.request_details,
-    } as any);
+    });
   } catch {}
 
   return { success: true, requestId };

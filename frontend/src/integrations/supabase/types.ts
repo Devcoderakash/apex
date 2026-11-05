@@ -50,6 +50,90 @@ export type Database = {
         }
         Relationships: []
       }
+      grievances: {
+        Row: {
+          id: string
+          complaint_id: string
+          name: string
+          email: string
+          phone: string | null
+          player_id: string | null
+          category: string
+          description: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          complaint_id: string
+          name: string
+          email: string
+          phone?: string | null
+          player_id?: string | null
+          category: string
+          description: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          complaint_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          player_id?: string | null
+          category?: string
+          description?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      privacy_requests: {
+        Row: {
+          id: string
+          request_id: string
+          request_type: string
+          name: string
+          email: string
+          phone: string | null
+          player_id: string | null
+          request_details: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          request_type: string
+          name: string
+          email: string
+          phone?: string | null
+          player_id?: string | null
+          request_details: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          request_type?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          player_id?: string | null
+          request_details?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           created_at: string
