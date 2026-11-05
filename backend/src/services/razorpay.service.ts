@@ -126,3 +126,55 @@ export function verifyRazorpaySignature(params: {
     return false;
   }
 }
+
+/**
+ * Fetch authoritative payment details directly from Razorpay API.
+ */
+export async function fetchRazorpayPayment(paymentId: string) {
+  const razorpay = getRazorpayClient();
+  if (!razorpay) {
+    throw new Error("Razorpay client is not configured");
+  }
+
+  try {
+    const payment = await razorpay.payments.fetch(paymentId);
+    return payment;
+  } catch (err: any) {
+    console.error(`[Razorpay Service] Failed to fetch payment ${paymentId}:`, err?.message);
+    throw err;
+  }
+}
+
+/**
+ * Timing-safe HMAC-SHA256 verification for Razorpay Webhooks.
+ * Strictly rejects missing signatures or secret mismatches.
+ */
+export function verifyRazorpayWebhookSignature(
+  rawBody: string,
+  signature: string,
+  customSecret?: string
+): boolean {
+  const secret = customSecret || config.razorpay.webhookSecret || config.razorpay.keySecret;
+  if (!secret || !signature || !rawBody) {
+    return false;
+  }
+
+  try {
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(rawBody)
+      .digest("hex");
+
+    const expectedBuf = Buffer.from(expectedSignature, "utf-8");
+    const actualBuf = Buffer.from(signature, "utf-8");
+
+    if (expectedBuf.length !== actualBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(expectedBuf, actualBuf);
+  } catch (err) {
+    console.error("[Razorpay Service] Webhook signature verification error:", err);
+    return false;
+  }
+}

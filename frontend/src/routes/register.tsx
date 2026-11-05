@@ -45,7 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { loadRazorpayScript } from "@/lib/razorpay";
-import { createOrder, verifyPayment, uploadPptFile } from "@/lib/api";
+import { createOrder, verifyPaymentAndRegister } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const safeLinkValidator = (val?: string) => {
@@ -173,15 +173,13 @@ function RegisterPage() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
-  // PPT / PDF upload state
+  // Selected PPT / PDF file state (kept in client memory until payment verification)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState<{
     name: string;
     size: number;
-    url: string;
-    storagePath: string;
     mimeType: string;
   } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const formatBytes = (bytes: number) => {
@@ -192,7 +190,7 @@ function RegisterPage() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -209,32 +207,19 @@ function RegisterPage() {
       return;
     }
 
-    setIsUploading(true);
     setUploadError(null);
-    toast.loading("Uploading presentation to Supabase Storage...", { id: "ppt_upload" });
-
-    try {
-      const res = await uploadPptFile(file);
-      setUploadedFile({
-        name: file.name,
-        size: file.size,
-        url: res.url,
-        storagePath: res.storagePath,
-        mimeType: file.type,
-      });
-      form.setValue("ppt_url", res.storagePath, { shouldValidate: true });
-      toast.success("Presentation uploaded to Supabase Storage!", { id: "ppt_upload" });
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      const msg = err.message || "Failed to upload file to storage";
-      setUploadError(msg);
-      toast.error(msg, { id: "ppt_upload" });
-    } finally {
-      setIsUploading(false);
-    }
+    setSelectedFile(file);
+    setUploadedFile({
+      name: file.name,
+      size: file.size,
+      mimeType: file.type || "application/octet-stream",
+    });
+    form.setValue("ppt_url", file.name, { shouldValidate: true });
+    toast.success("Presentation file attached for submission");
   };
 
   const handleRemoveFile = () => {
+    setSelectedFile(null);
     setUploadedFile(null);
     setUploadError(null);
     form.setValue("ppt_url", "", { shouldValidate: true });
@@ -283,7 +268,7 @@ function RegisterPage() {
 
       toast.loading("Initiating registration order...", { id: "order_create" });
 
-      // 1. Create server-side order with Razorpay
+      // 1. Create server-side order with Razorpay (₹199). Zero pre-payment database insertions!
       const orderData = await createOrder({
         team_name: values.team_name,
         leader_name: values.leader_name,
@@ -292,10 +277,6 @@ function RegisterPage() {
         college: values.college,
         team_size: Number(values.team_size),
         ppt_url: values.ppt_url,
-        ppt_storage_path: uploadedFile?.storagePath,
-        ppt_file_name: uploadedFile?.name,
-        ppt_file_type: uploadedFile?.mimeType,
-        ppt_file_size: uploadedFile?.size,
         ...(values.preferred_domain !== undefined && { preferred_domain: values.preferred_domain }),
         ...(values.github_url !== undefined && { github_url: values.github_url }),
         ...(values.linkedin_url !== undefined && { linkedin_url: values.linkedin_url }),
@@ -354,9 +335,9 @@ function RegisterPage() {
           contact: values.phone,
         },
         notes: {
-          team_id: orderData.teamId,
-          player_id: orderData.playerId,
           team_name: values.team_name,
+          leader_name: values.leader_name,
+          email: values.email,
         },
         theme: {
           color: "#dc2626",
@@ -378,28 +359,50 @@ function RegisterPage() {
           razorpay_signature: string;
         }) => {
           toast.dismiss("rzp_checkout");
-          toast.loading("Verifying payment with server...", { id: "payment_verify" });
+          toast.loading("Verifying payment and confirming registration...", { id: "payment_verify" });
 
           try {
-            const verifyRes = await verifyPayment({
+            const verifyRes = await verifyPaymentAndRegister({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              teamId: orderData.teamId,
+              team_name: values.team_name,
+              leader_name: values.leader_name,
+              email: values.email,
+              phone: values.phone,
+              college: values.college,
+              team_size: Number(values.team_size),
+              preferred_domain: values.preferred_domain,
+              github_url: values.github_url,
+              linkedin_url: values.linkedin_url,
+              project_title: values.project_title,
+              project_description: values.project_description,
+              problem_statement: values.problem_statement,
+              proposed_solution: values.proposed_solution,
+              tech_stack: values.tech_stack,
+              expected_impact: values.expected_impact,
+              demo_url: values.demo_url,
+              portfolio_url: values.portfolio_url,
+              other_links: values.other_links,
+              consent_marketing_email: values.consent_marketing_email,
+              consent_marketing_sms: values.consent_marketing_sms,
+              consent_marketing_whatsapp: values.consent_marketing_whatsapp,
+              members,
+              file: selectedFile,
             });
 
             if (verifyRes.success) {
-              toast.success("PAYMENT CONFIRMED", {
+              toast.success("PAYMENT & REGISTRATION CONFIRMED", {
                 id: "payment_verify",
-                description: `Team ID ${orderData.playerId} confirmed!`,
+                description: `Team ID ${verifyRes.playerId} confirmed!`,
               });
 
               navigate({
                 to: "/success",
                 search: {
-                  pid: orderData.playerId,
+                  pid: verifyRes.playerId,
                   team: values.team_name,
-                  order_id: orderData.orderId,
+                  order_id: response.razorpay_order_id,
                 },
               });
             } else {
@@ -747,7 +750,6 @@ function RegisterPage() {
                                   htmlFor="ppt-file-input"
                                   className={cn(
                                     "relative flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/40 p-4 sm:p-8 text-center cursor-pointer transition-all duration-200 hover:border-primary/60 hover:bg-card/70 group active:scale-[0.99] w-full min-w-0 max-w-full overflow-hidden",
-                                    isUploading && "pointer-events-none opacity-60",
                                     form.formState.errors.ppt_url && "border-destructive/60"
                                   )}
                                 >
@@ -756,25 +758,20 @@ function RegisterPage() {
                                     type="file"
                                     accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                                     className="sr-only"
-                                    disabled={isUploading}
                                     onChange={handleFileSelect}
                                   />
                                   <div className="grid h-10 w-10 sm:h-12 sm:w-12 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-110">
-                                    {isUploading ? (
-                                      <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
-                                    ) : (
-                                      <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                                    )}
+                                    <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                                   </div>
                                   <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm font-medium text-foreground px-2 break-words">
-                                    {isUploading ? "Uploading presentation to Supabase Storage..." : "Tap to select or drop presentation"}
+                                    Tap to select or drop presentation
                                   </p>
                                   <p className="mt-1 text-[0.7rem] sm:text-xs text-muted-foreground px-2 break-words">
                                     Accepted formats: PPT, PPTX, or PDF · Max file size: 20MB
                                   </p>
                                   <div className="mt-2.5 sm:mt-3 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/50 px-2.5 sm:px-3 py-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground max-w-full">
                                     <Database className="h-3 w-3 text-primary shrink-0" />
-                                    <span className="truncate">Stored securely in Supabase Cloud Storage</span>
+                                    <span className="truncate">Uploaded securely to Supabase Storage upon payment</span>
                                   </div>
                                 </label>
                               ) : (
@@ -788,21 +785,12 @@ function RegisterPage() {
                                         {uploadedFile.name}
                                       </p>
                                       <p className="font-mono text-[0.65rem] sm:text-xs text-muted-foreground truncate block">
-                                        {formatBytes(uploadedFile.size)} · Saved to Supabase
+                                        {formatBytes(uploadedFile.size)} · Attached (Submits on payment)
                                       </p>
                                     </div>
                                   </div>
 
                                   <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0 pt-2 sm:pt-0 border-t border-border/30 sm:border-0">
-                                    <a
-                                      href={uploadedFile.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center justify-center gap-1 rounded-md border border-border/60 bg-card/40 px-2.5 py-1.5 font-mono text-xs text-muted-foreground transition hover:border-primary/50 hover:text-primary min-h-[36px] flex-1 sm:flex-none"
-                                    >
-                                      <ExternalLink className="h-3 w-3" />
-                                      Preview
-                                    </a>
                                     <Button
                                       type="button"
                                       variant="ghost"
@@ -811,7 +799,7 @@ function RegisterPage() {
                                       className="h-9 px-2.5 font-mono text-xs text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
                                     >
                                       <X className="h-3.5 w-3.5 mr-1" />
-                                      Change
+                                      Change File
                                     </Button>
                                   </div>
                                 </div>

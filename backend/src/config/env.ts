@@ -24,6 +24,7 @@ export const config = {
   razorpay: {
     keyId: process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || "",
     keySecret: process.env.RAZORPAY_KEY_SECRET || "",
+    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || "",
   },
   adminApiKey: process.env.ADMIN_API_KEY || "apex_admin_secret_2026",
   cronSecret: process.env.CRON_SECRET || "",

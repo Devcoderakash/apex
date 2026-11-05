@@ -68,95 +68,35 @@ export interface PaymentOrderResponse {
 export async function createOrder(
   data: CreateOrderPayload,
 ): Promise<PaymentOrderResponse> {
-  // Try backend order creation first (via /api/create-order)
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/create-order`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+  const response = await fetch(`${API_BASE_URL}/api/create-order`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const responseData = await response.json();
-      if (response.ok) {
-        return responseData.data || responseData;
-      }
-      throw new Error(responseData?.error || responseData?.message || `Server returned error (${response.status})`);
-    } else if (!response.ok) {
-      throw new Error(`Server returned HTTP ${response.status}`);
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const responseData = await response.json();
+    if (response.ok && responseData.success) {
+      return {
+        orderId: responseData.orderId || responseData.order_id,
+        amount: responseData.amount,
+        amountInRupees: responseData.amountInRupees || Math.round(responseData.amount / 100),
+        currency: responseData.currency || "INR",
+        keyId: responseData.keyId || responseData.key_id || (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || "",
+        teamId: responseData.teamId || "",
+        playerId: responseData.playerId || "",
+        teamName: responseData.teamName || data.team_name,
+        leaderName: responseData.leaderName || data.leader_name,
+        email: responseData.email || data.email,
+        phone: responseData.phone || data.phone,
+      };
     }
-  } catch (backendErr: any) {
-    console.error("[Order] Backend order creation error:", backendErr);
-    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
-      throw backendErr;
-    }
-    console.warn("[Order] Backend network unavailable, using direct Supabase registration:", backendErr);
+    throw new Error(responseData?.error || responseData?.message || `Failed to create payment order (${response.status})`);
   }
-
-  // Direct Supabase Registration
-  const keyId = (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || "";
-  const orderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  const playerIdFallback = `APEX-${randomSuffix}`;
-
-  const { data: teamRow, error: teamErr } = await supabase
-    .from("teams")
-    .insert({
-      team_name: data.team_name,
-      leader_name: data.leader_name,
-      email: data.email,
-      phone: data.phone,
-      college: data.college || "",
-      team_size: data.team_size,
-      ppt_url: data.ppt_url,
-      ppt_storage_path: data.ppt_storage_path || data.ppt_url,
-      ppt_file_name: data.ppt_file_name,
-      ppt_file_type: data.ppt_file_type,
-      ppt_file_size: data.ppt_file_size,
-      preferred_domain: data.preferred_domain,
-      github_url: data.github_url,
-      linkedin_url: data.linkedin_url,
-      payment_status: "pending",
-      payment_amount: 199,
-      razorpay_order_id: orderId,
-    } as any)
-    .select("id, player_id, team_name")
-    .single();
-
-  if (teamErr) {
-    console.error("[Order] Supabase team insert error:", teamErr);
-    throw new Error(teamErr.message || "Failed to create registration in database");
-  }
-
-  const teamId = teamRow?.id || "";
-  const playerId = teamRow?.player_id || playerIdFallback;
-
-  if (data.members && data.members.length > 0 && teamId) {
-    await supabase.from("team_members").insert(
-      data.members.map((m, idx) => ({
-        team_id: teamId,
-        full_name: m.full_name,
-        position: m.position || idx + 1,
-      })) as any
-    );
-  }
-
-  return {
-    orderId,
-    amount: 19900,
-    amountInRupees: 199,
-    currency: "INR",
-    keyId,
-    teamId,
-    playerId,
-    teamName: data.team_name,
-    leaderName: data.leader_name,
-    email: data.email,
-    phone: data.phone,
-  };
+  throw new Error(`Order creation server returned HTTP ${response.status}`);
 }
 
 export interface VerifyPaymentPayload {
@@ -173,60 +113,131 @@ export async function verifyPayment(params: VerifyPaymentPayload): Promise<{
   teamName: string;
   orderId: string;
 }> {
-  // Try backend payment verification first (via /api/verify-payment)
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
+  const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(params),
+  });
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const responseData = await response.json();
-      if (response.ok) {
-        return responseData.data || responseData;
-      }
-      throw new Error(responseData?.error || responseData?.message || `Payment verification failed (${response.status})`);
-    } else if (!response.ok) {
-      throw new Error(`Verification server returned HTTP ${response.status}`);
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const responseData = await response.json();
+    if (response.ok && responseData.success) {
+      return {
+        success: true,
+        status: responseData.status || "paid",
+        playerId: responseData.playerId || "",
+        teamName: responseData.teamName || "Team",
+        orderId: responseData.order_id || params.razorpay_order_id,
+      };
     }
-  } catch (backendErr: any) {
-    console.error("[Payment] Backend verify error:", backendErr);
-    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
-      throw backendErr;
-    }
-    console.warn("[Payment] Backend verify network unavailable, attempting direct Supabase:", backendErr);
+    throw new Error(responseData?.error || responseData?.message || `Payment verification failed (${response.status})`);
+  }
+  throw new Error(`Verification server returned HTTP ${response.status}`);
+}
+
+export interface VerifyPaymentAndRegisterPayload {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  team_name: string;
+  leader_name: string;
+  email: string;
+  phone: string;
+  college?: string;
+  team_size: number;
+  preferred_domain?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  project_title?: string;
+  project_description?: string;
+  problem_statement?: string;
+  proposed_solution?: string;
+  tech_stack?: string;
+  expected_impact?: string;
+  demo_url?: string;
+  portfolio_url?: string;
+  other_links?: string;
+  consent_marketing_email?: boolean;
+  consent_marketing_sms?: boolean;
+  consent_marketing_whatsapp?: boolean;
+  members?: { full_name: string; position: number }[];
+  file?: File | null;
+}
+
+/**
+ * ATOMIC POST-PAYMENT REGISTRATION
+ * Sends payment proof and complete registration details in multipart FormData.
+ * Presentation file is uploaded only now (post-payment).
+ */
+export async function verifyPaymentAndRegister(
+  payload: VerifyPaymentAndRegisterPayload,
+): Promise<{
+  success: boolean;
+  status: string;
+  playerId: string;
+  teamName: string;
+  orderId: string;
+}> {
+  const formData = new FormData();
+  formData.append("razorpay_order_id", payload.razorpay_order_id);
+  formData.append("razorpay_payment_id", payload.razorpay_payment_id);
+  formData.append("razorpay_signature", payload.razorpay_signature);
+  formData.append("team_name", payload.team_name);
+  formData.append("leader_name", payload.leader_name);
+  formData.append("email", payload.email);
+  formData.append("phone", payload.phone);
+  if (payload.college) formData.append("college", payload.college);
+  formData.append("team_size", String(payload.team_size || 1));
+
+  if (payload.preferred_domain) formData.append("preferred_domain", payload.preferred_domain);
+  if (payload.github_url) formData.append("github_url", payload.github_url);
+  if (payload.linkedin_url) formData.append("linkedin_url", payload.linkedin_url);
+  if (payload.project_title) formData.append("project_title", payload.project_title);
+  if (payload.project_description) formData.append("project_description", payload.project_description);
+  if (payload.problem_statement) formData.append("problem_statement", payload.problem_statement);
+  if (payload.proposed_solution) formData.append("proposed_solution", payload.proposed_solution);
+  if (payload.tech_stack) formData.append("tech_stack", payload.tech_stack);
+  if (payload.expected_impact) formData.append("expected_impact", payload.expected_impact);
+  if (payload.demo_url) formData.append("demo_url", payload.demo_url);
+  if (payload.portfolio_url) formData.append("portfolio_url", payload.portfolio_url);
+  if (payload.other_links) formData.append("other_links", payload.other_links);
+
+  formData.append("consent_service", "true");
+  formData.append("consent_marketing_email", String(!!payload.consent_marketing_email));
+  formData.append("consent_marketing_sms", String(!!payload.consent_marketing_sms));
+  formData.append("consent_marketing_whatsapp", String(!!payload.consent_marketing_whatsapp));
+
+  if (payload.members && payload.members.length > 0) {
+    formData.append("members", JSON.stringify(payload.members));
   }
 
-  // Direct Supabase update
-  let updateQuery = supabase.from("teams").update({
-    payment_status: "paid",
-    payment_id: params.razorpay_payment_id,
-    payment_signature: params.razorpay_signature,
-    paid_at: new Date().toISOString(),
-    status: "confirmed" as any,
-  } as any);
-
-  if (params.teamId) {
-    updateQuery = updateQuery.eq("id", params.teamId);
-  } else {
-    updateQuery = updateQuery.eq("razorpay_order_id", params.razorpay_order_id);
+  if (payload.file) {
+    formData.append("presentation", payload.file);
   }
 
-  const { data: updatedTeam } = await updateQuery
-    .select("id, player_id, team_name")
-    .single();
+  const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
+    method: "POST",
+    body: formData,
+  });
 
-  return {
-    success: true,
-    status: "paid",
-    playerId: updatedTeam?.player_id || "APEX-2048",
-    teamName: updatedTeam?.team_name || "Team",
-    orderId: params.razorpay_order_id,
-  };
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const responseData = await response.json();
+    if (response.ok && responseData.success) {
+      return {
+        success: true,
+        status: responseData.status || "paid",
+        playerId: responseData.playerId,
+        teamName: responseData.teamName || payload.team_name,
+        orderId: responseData.order_id || payload.razorpay_order_id,
+      };
+    }
+    throw new Error(responseData?.error || responseData?.message || `Payment verification failed (${response.status})`);
+  }
+  throw new Error(`Verification server returned HTTP ${response.status}`);
 }
 
 export async function getTeamByOrderId(

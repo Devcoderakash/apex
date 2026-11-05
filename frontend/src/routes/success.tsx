@@ -22,8 +22,8 @@ import {
 } from "@/lib/api";
 
 const searchSchema = z.object({
-  pid: z.string().optional().catch("APEX-2048"),
-  team: z.string().optional().catch("TEAM NOVA"),
+  pid: z.string().optional(),
+  team: z.string().optional(),
   order_id: z.string().optional(),
 });
 
@@ -48,10 +48,9 @@ export const Route = createFileRoute("/success")({
 
 function SuccessPage() {
   const search = Route.useSearch();
-  const [teamInfo, setTeamInfo] = useState<{ pid: string; team: string }>({
-    pid: search.pid || "APEX-2048",
-    team: search.team || "TEAM NOVA",
-  });
+  const [teamInfo, setTeamInfo] = useState<{ pid: string; team: string } | null>(
+    search.pid ? { pid: search.pid, team: search.team || "Team" } : null,
+  );
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [resending, setResending] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -66,8 +65,8 @@ function SuccessPage() {
           }
         })
         .catch(() => {});
-    } else if (search.pid && search.team) {
-      setTeamInfo({ pid: search.pid, team: search.team });
+    } else if (search.pid) {
+      setTeamInfo({ pid: search.pid, team: search.team || "Team" });
     }
 
     // Auto-trigger confirmation email if not already sent
@@ -86,8 +85,8 @@ function SuccessPage() {
     }
   }, [search.order_id, search.pid, search.team]);
 
-  const pid = teamInfo.pid;
-  const team = teamInfo.team;
+  const pid = teamInfo?.pid || search.pid || "";
+  const team = teamInfo?.team || search.team || "Team";
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(pid);
@@ -152,6 +151,33 @@ function SuccessPage() {
     URL.revokeObjectURL(url);
     toast.success("Calendar invite downloaded!");
   };
+
+  if (!pid && !search.order_id) {
+    return (
+      <section className="scanlines relative flex min-h-[100svh] items-center justify-center overflow-hidden void-bg px-4 py-24 sm:px-8 sm:py-28">
+        <div className="grid-veil pointer-events-none absolute inset-0" aria-hidden />
+        <div className="relative mx-auto w-full max-w-md text-center rounded-2xl border border-border/60 bg-card/75 p-6 sm:p-10 backdrop-blur-xl shadow-[0_0_50px_-10px_rgba(225,29,72,0.25)]">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary mb-4">
+            <ShieldCheck className="h-7 w-7 text-primary" />
+          </div>
+          <h1 className="font-display text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+            NO REGISTRATION FOUND
+          </h1>
+          <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            No active or verified registration was detected. Please register your team and complete payment to generate your official APEX 1.0 pass.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Link to="/register">
+              <Button size="lg" className="cyber-glow font-mono font-bold tracking-wider">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                GO TO REGISTRATION
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="scanlines relative flex min-h-[100svh] items-center justify-center overflow-hidden void-bg px-4 py-24 sm:px-8 sm:py-28">

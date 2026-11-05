@@ -6,6 +6,7 @@ import { uploadRouter } from "./upload.routes.js";
 import { emailRouter } from "./email.routes.js";
 import { grievanceRouter, privacyRouter } from "./compliance.routes.js";
 import { createOrder, verifyPayment } from "../controllers/payment.controller.js";
+import { memoryUpload } from "../middleware/upload.middleware.js";
 
 export const apiRouter = Router();
 
@@ -30,7 +31,7 @@ apiRouter.get("/health", (_req, res) => {
 
 // Direct Razorpay Standard Checkout endpoints
 apiRouter.post("/create-order", createOrder);
-apiRouter.post("/verify-payment", verifyPayment);
+apiRouter.post("/verify-payment", memoryUpload, verifyPayment);
 
 // Payments
 apiRouter.use("/payment", paymentRouter);

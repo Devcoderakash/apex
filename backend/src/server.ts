@@ -4,6 +4,7 @@ import { config } from "./config/env.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { apiRouter } from "./routes/index.js";
 import { createOrder, verifyPayment } from "./controllers/payment.controller.js";
+import { memoryUpload } from "./middleware/upload.middleware.js";
 
 const app = express();
 
@@ -60,7 +61,7 @@ app.use("/api", apiRouter);
 
 // Direct Razorpay Standard Checkout endpoints (for direct /create-order calls)
 app.post("/create-order", createOrder);
-app.post("/verify-payment", verifyPayment);
+app.post("/verify-payment", memoryUpload, verifyPayment);
 
 // Central error handler
 app.use(errorHandler);
