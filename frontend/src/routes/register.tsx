@@ -698,35 +698,11 @@ function RegisterPage() {
                     </div>
                   </div>
 
-                  {/* SECTION 04 – PROJECT DETAILS */}
-                  <div className="w-full min-w-0 max-w-full">
-                    <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
-                      <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">SECTION_04 / PROJECT BRIEF</SystemLabel>
-                      <div className="h-px flex-1 bg-border/40" />
-                      <span className="font-mono text-[0.55rem] sm:text-[0.6rem] tracking-widest text-muted-foreground shrink-0">
-                        OPTIONAL
-                      </span>
-                    </div>
-                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-                      <Field form={form} name="project_title" label="PROJECT / IDEA TITLE" placeholder="e.g. MedAI Diagnostics Platform" />
-                      <Field form={form} name="tech_stack" label="TECHNOLOGY STACK" placeholder="e.g. React, Node.js, Python, Supabase" />
-                    </div>
-                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 mt-3">
-                      <Field form={form} name="problem_statement" label="PROBLEM STATEMENT" placeholder="What challenge does this solve?" />
-                      <Field form={form} name="proposed_solution" label="PROPOSED SOLUTION" placeholder="How does your solution work?" />
-                    </div>
-                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3 mt-3">
-                      <Field form={form} name="demo_url" label="LIVE DEMO / PROTOTYPE URL" placeholder="https://..." />
-                      <Field form={form} name="portfolio_url" label="PITCH DECK / PORTFOLIO URL" placeholder="https://..." />
-                      <Field form={form} name="other_links" label="ADDITIONAL LINKS" placeholder="https://..." />
-                    </div>
-                  </div>
-
-                  {/* SECTION 05 – IDEA SUBMISSION (UPLOAD) */}
+                  {/* SECTION 04 – IDEA SUBMISSION (UPLOAD) */}
                   <div className="w-full min-w-0 max-w-full">
                     <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
                       <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">
-                        SECTION_05 / IDEA UPLOAD
+                        SECTION_04 / IDEA UPLOAD
                       </SystemLabel>
                       <div className="h-px flex-1 bg-border/40" />
                     </div>
