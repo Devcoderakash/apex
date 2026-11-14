@@ -15,6 +15,7 @@ export interface EmailRegistrationData {
   teamSize: number;
   members?: { full_name: string; position: number }[];
   preferredDomain?: string | null;
+  ideaDriveLink?: string | null;
   pptFileName?: string | null;
   pptStoragePath?: string | null;
   pptUrl?: string | null;
@@ -42,8 +43,10 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
   }
 
   // Format presentation status
-  const hasPresentation = Boolean(data.pptStoragePath || data.pptUrl || data.pptFileName);
-  const presentationStatus = hasPresentation
+  const presentationLink = data.ideaDriveLink || data.pptUrl;
+  const presentationStatus = presentationLink
+    ? "Google Drive Link Attached (Round 1 Evaluation)"
+    : Boolean(data.pptStoragePath || data.pptFileName)
     ? `Submitted ${data.pptFileName ? `(${data.pptFileName})` : "for Evaluation"}`
     : "Submission Pending";
 

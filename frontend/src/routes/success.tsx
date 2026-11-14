@@ -4,7 +4,10 @@ import {
   ArrowLeft,
   CalendarPlus,
   Check,
+  CheckCircle2,
   Copy,
+  ExternalLink,
+  Info,
   Mail,
   RefreshCw,
   ShieldCheck,
@@ -16,14 +19,15 @@ import { z } from "zod";
 import { SystemLabel } from "@/components/site/bits";
 import { Button } from "@/components/ui/button";
 import {
-  checkEmailStatus,
   getTeamByOrderId,
   triggerConfirmationEmail,
 } from "@/lib/api";
 
 const searchSchema = z.object({
   pid: z.string().optional(),
+  r_id: z.string().optional(),
   team: z.string().optional(),
+  leader: z.string().optional(),
   order_id: z.string().optional(),
 });
 
@@ -34,7 +38,7 @@ export const Route = createFileRoute("/success")({
       { title: "Registration Confirmed — APEX 1.0" },
       {
         name: "description",
-        content: "Your APEX 1.0 registration is confirmed. Keep your Team ID safe.",
+        content: "Your APEX 1.0 registration is confirmed. Keep your unique Registration ID safe.",
       },
       { property: "og:title", content: "Registration Confirmed — APEX 1.0" },
       { property: "og:description", content: "Registration complete. Welcome to APEX 1.0." },
@@ -46,10 +50,35 @@ export const Route = createFileRoute("/success")({
   component: SuccessPage,
 });
 
+function GoogleDriveIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 87.3 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066DA"/>
+      <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A8.9 8.9 0 0 0 0 53h27.5z" fill="#00AC47"/>
+      <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 10.1z" fill="#EA4335"/>
+      <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.4-4.5 1.2z" fill="#00832D"/>
+      <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684FC"/>
+      <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.15 28h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#FFBA00"/>
+    </svg>
+  );
+}
+
 function SuccessPage() {
   const search = Route.useSearch();
-  const [teamInfo, setTeamInfo] = useState<{ pid: string; team: string } | null>(
-    search.pid ? { pid: search.pid, team: search.team || "Team" } : null,
+  const rawId = search.r_id || search.pid || "";
+  const [teamInfo, setTeamInfo] = useState<{
+    r_id: string;
+    team: string;
+    leader: string;
+    driveLink?: string;
+  } | null>(
+    rawId
+      ? {
+          r_id: rawId,
+          team: search.team || "Team",
+          leader: search.leader || "Team Leader",
+        }
+      : null,
   );
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [resending, setResending] = useState(false);
@@ -60,20 +89,29 @@ function SuccessPage() {
     if (search.order_id) {
       getTeamByOrderId(search.order_id)
         .then((t) => {
-          if (t && t.player_id && t.team_name) {
-            setTeamInfo({ pid: t.player_id, team: t.team_name });
+          if (t && (t.r_id || t.player_id) && t.team_name) {
+            setTeamInfo({
+              r_id: t.r_id || t.player_id,
+              team: t.team_name,
+              leader: t.team_leader_name || t.leader_name || search.leader || "Team Leader",
+              driveLink: t.idea_drive_link,
+            });
           }
         })
         .catch(() => {});
-    } else if (search.pid) {
-      setTeamInfo({ pid: search.pid, team: search.team || "Team" });
+    } else if (rawId) {
+      setTeamInfo({
+        r_id: rawId,
+        team: search.team || "Team",
+        leader: search.leader || "Team Leader",
+      });
     }
 
     // Auto-trigger confirmation email if not already sent
-    const identifier = search.order_id || search.pid;
+    const identifier = search.order_id || rawId;
     if (identifier) {
       setEmailStatus("sending");
-      triggerConfirmationEmail({ orderId: search.order_id, playerId: search.pid })
+      triggerConfirmationEmail({ orderId: search.order_id, playerId: rawId })
         .then((res) => {
           if (res.success) {
             setEmailStatus("sent");
@@ -83,15 +121,17 @@ function SuccessPage() {
         })
         .catch(() => setEmailStatus("idle"));
     }
-  }, [search.order_id, search.pid, search.team]);
+  }, [search.order_id, rawId, search.team, search.leader]);
 
-  const pid = teamInfo?.pid || search.pid || "";
-  const team = teamInfo?.team || search.team || "Team";
+  const displayId = teamInfo?.r_id || rawId;
+  const displayTeam = teamInfo?.team || search.team || "Team APEX";
+  const displayLeader = teamInfo?.leader || search.leader || "Team Leader";
 
   const handleCopyId = () => {
-    navigator.clipboard.writeText(pid);
+    if (!displayId) return;
+    navigator.clipboard.writeText(displayId);
     setCopiedId(true);
-    toast.success("Team ID copied to clipboard!");
+    toast.success("Registration ID copied to clipboard!");
     setTimeout(() => setCopiedId(false), 2000);
   };
 
@@ -105,14 +145,14 @@ function SuccessPage() {
   };
 
   const handleResendEmail = async () => {
-    const identifier = search.order_id || pid;
+    const identifier = search.order_id || displayId;
     if (!identifier) return;
     setResending(true);
     toast.loading("Sending confirmation email...", { id: "resend_email" });
     try {
       const res = await triggerConfirmationEmail({
         orderId: search.order_id,
-        playerId: pid,
+        playerId: displayId,
         forceRetry: true,
       });
       if (res.success) {
@@ -138,7 +178,7 @@ function SuccessPage() {
       "DTSTART:20260314T043000Z",
       "DTEND:20260315T123000Z",
       "LOCATION:Tech Convention Centre, Bhopal, Madhya Pradesh",
-      `DESCRIPTION:APEX 1.0 registration confirmed for Team ${team} (ID: ${pid}).`,
+      `DESCRIPTION:APEX 1.0 registration confirmed for Team ${displayTeam} (Registration ID: ${displayId}).`,
       "STATUS:CONFIRMED",
       "END:VEVENT",
       "END:VCALENDAR",
@@ -146,13 +186,13 @@ function SuccessPage() {
     const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `apex-calendar-${pid}.ics`;
+    a.download = `apex-registration-${displayId || "pass"}.ics`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Calendar invite downloaded!");
   };
 
-  if (!pid && !search.order_id) {
+  if (!displayId && !search.order_id) {
     return (
       <section className="scanlines relative flex min-h-[100svh] items-center justify-center overflow-hidden void-bg px-4 py-24 sm:px-8 sm:py-28">
         <div className="grid-veil pointer-events-none absolute inset-0" aria-hidden />
@@ -214,9 +254,9 @@ function SuccessPage() {
               </SystemLabel>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 sm:px-3 py-1 font-mono text-[0.6rem] sm:text-[0.65rem] tracking-[0.14em] sm:tracking-[0.16em] text-primary">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              VERIFIED REGISTRATION
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 sm:px-3 py-1 font-mono text-[0.6rem] sm:text-[0.65rem] tracking-[0.14em] sm:tracking-[0.16em] text-emerald-400 font-semibold">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              VERIFIED PAYMENT · ₹199 PAID
             </div>
           </div>
 
@@ -226,66 +266,119 @@ function SuccessPage() {
               WELCOME TO <span className="text-primary text-glow">APEX 1.0</span>
             </h1>
             <p className="mt-2 text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">
-              Your registration details and idea presentation have been successfully submitted and saved. Keep your Team ID below safe for official communications.
+              Your registration details and idea presentation have been submitted and saved. Keep your official Registration ID below safe for all hackathon phases.
+            </p>
+          </div>
+
+          {/* Primary Registration ID Banner */}
+          <div className="mt-6 group relative overflow-hidden rounded-xl border border-primary/50 bg-primary/10 p-4 sm:p-6 transition-all hover:border-primary/80">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                OFFICIAL REGISTRATION ID (R_ID)
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-card/80 px-3 py-1.5 font-mono text-xs text-foreground hover:bg-primary/20 hover:text-white transition-colors"
+                title="Copy Registration ID"
+              >
+                {copiedId ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                {copiedId ? "COPIED" : "COPY ID"}
+              </button>
+            </div>
+            <div className="mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-black tracking-widest text-white break-all drop-shadow-[0_0_15px_rgba(255,23,68,0.4)]">
+              {displayId}
+            </div>
+            <p className="mt-1.5 font-mono text-[0.65rem] sm:text-xs text-muted-foreground tracking-wider">
+              Permanent cryptographic identifier. Quote this R_ID in all queries, submissions, and check-ins.
             </p>
           </div>
 
           {/* Key Registration Details Grid */}
-          <div className="mt-6 sm:mt-8 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-            {/* Team ID Card */}
-            <div className="group relative overflow-hidden rounded-xl border border-primary/40 bg-primary/5 p-4 sm:p-5 transition-all hover:border-primary/70 hover:bg-primary/10">
-              <div className="flex items-center justify-between">
-                <dt className="system-label text-primary font-bold">TEAM IDENTIFIER</dt>
-                <button
-                  type="button"
-                  onClick={handleCopyId}
-                  className="inline-flex items-center gap-1 rounded bg-background/60 px-2.5 py-1.5 font-mono text-[0.65rem] text-muted-foreground hover:text-white transition-colors min-h-[32px]"
-                  title="Copy Team ID"
-                >
-                  {copiedId ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copiedId ? "COPIED" : "COPY"}
-                </button>
-              </div>
-              <dd className="mt-2 font-display text-xl sm:text-2xl md:text-3xl font-black tracking-wider text-primary break-all">
-                {pid}
-              </dd>
-              <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-white/50 tracking-wider">
-                Quote this ID for all official communications.
-              </p>
-            </div>
-
+          <div className="mt-4 sm:mt-5 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
             {/* Team Name Card */}
             <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5">
               <dt className="system-label text-muted-foreground">TEAM NAME</dt>
               <dd className="mt-2 font-display text-base sm:text-xl md:text-2xl font-bold tracking-wide text-foreground break-words line-clamp-2">
-                {team}
+                {displayTeam}
               </dd>
               <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground tracking-wider">
                 Category: Open Innovation
               </p>
             </div>
 
-            {/* Status Card */}
+            {/* Team Leader Card */}
             <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5">
-              <dt className="system-label text-muted-foreground">SUBMISSION STATUS</dt>
-              <dd className="mt-2 flex items-center gap-2 font-display text-lg sm:text-xl md:text-2xl font-bold text-cyan-400">
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-                ROUND 1 CONFIRMED
+              <dt className="system-label text-muted-foreground">TEAM LEADER</dt>
+              <dd className="mt-2 font-display text-base sm:text-xl md:text-2xl font-bold tracking-wide text-foreground break-words">
+                {displayLeader}
               </dd>
               <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground tracking-wider">
-                Presentation submitted for evaluation.
+                Primary Contact & Team Lead
+              </p>
+            </div>
+
+            {/* Google Drive Link Confirmation Card */}
+            <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <dt className="system-label text-muted-foreground">PRESENTATION SUBMISSION</dt>
+                <GoogleDriveIcon className="h-4 w-4" />
+              </div>
+              <dd className="mt-2 flex items-center gap-2 font-display text-base sm:text-lg font-bold text-cyan-400">
+                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                GOOGLE DRIVE LINK SAVED
+              </dd>
+              <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground tracking-wider">
+                Linked for Round 1 Evaluation · Viewer Access Required
               </p>
             </div>
 
             {/* Payment Card */}
             <div className="relative overflow-hidden rounded-xl border border-border/70 bg-card/60 p-4 sm:p-5">
-              <dt className="system-label text-muted-foreground">PAYMENT STATUS</dt>
-              <dd className="mt-2 font-display text-lg sm:text-xl md:text-2xl font-bold text-emerald-400">
+              <div className="flex items-center justify-between">
+                <dt className="system-label text-muted-foreground">PAYMENT STATUS</dt>
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              </div>
+              <dd className="mt-2 font-display text-base sm:text-xl md:text-2xl font-bold text-emerald-400">
                 PAID (₹199)
               </dd>
               <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground tracking-wider">
                 Razorpay Verified · Fee Cleared
               </p>
+            </div>
+          </div>
+
+          {/* Round 1 Instructions Card */}
+          <div className="mt-4 sm:mt-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10 p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 text-cyan-400">
+                <Info className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-mono text-xs font-bold tracking-wider text-cyan-300 uppercase">
+                  ROUND 1 EVALUATION INSTRUCTIONS
+                </h4>
+                <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground leading-relaxed">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span>
+                      <strong className="text-white">Keep Drive Access Open:</strong> Verify your Google Drive presentation link remains set to <strong className="text-cyan-300">"Anyone with the link – Viewer"</strong> throughout the evaluation cycle.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span>
+                      <strong className="text-white">Screening Criteria:</strong> Our judging panel evaluates problem impact, innovation, feasibility, and technical depth.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span>
+                      <strong className="text-white">Shortlist Announcement:</strong> Qualifying teams will receive direct email invitations to the Grand Finale Hackathon.
+                    </span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -327,7 +420,7 @@ function SuccessPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                  Official confirmation & Round 1 details have been dispatched to your registered team email.
+                  Official confirmation & Round 1 screening details have been dispatched to your registered team email.
                 </p>
               </div>
             </div>

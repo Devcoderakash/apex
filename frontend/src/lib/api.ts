@@ -21,11 +21,8 @@ export interface CreateOrderPayload {
   phone: string;
   college: string;
   team_size: number;
-  ppt_url: string;
-  ppt_storage_path?: string;
-  ppt_file_name?: string;
-  ppt_file_type?: string;
-  ppt_file_size?: number;
+  idea_drive_link: string;
+  ppt_url?: string;
   preferred_domain?: string;
   project_title?: string;
   project_description?: string;
@@ -148,6 +145,8 @@ export interface VerifyPaymentAndRegisterPayload {
   phone: string;
   college?: string;
   team_size: number;
+  idea_drive_link: string;
+  ppt_url?: string;
   preferred_domain?: string;
   github_url?: string;
   linkedin_url?: string;
@@ -164,13 +163,12 @@ export interface VerifyPaymentAndRegisterPayload {
   consent_marketing_sms?: boolean;
   consent_marketing_whatsapp?: boolean;
   members?: { full_name: string; position: number }[];
-  file?: File | null;
 }
 
 /**
  * ATOMIC POST-PAYMENT REGISTRATION
- * Sends payment proof and complete registration details in multipart FormData.
- * Presentation file is uploaded only now (post-payment).
+ * Sends payment proof and complete registration details including idea_drive_link.
+ * Uses clean JSON payload.
  */
 export async function verifyPaymentAndRegister(
   payload: VerifyPaymentAndRegisterPayload,
@@ -178,49 +176,45 @@ export async function verifyPaymentAndRegister(
   success: boolean;
   status: string;
   playerId: string;
+  r_id?: string;
   teamName: string;
   orderId: string;
 }> {
-  const formData = new FormData();
-  formData.append("razorpay_order_id", payload.razorpay_order_id);
-  formData.append("razorpay_payment_id", payload.razorpay_payment_id);
-  formData.append("razorpay_signature", payload.razorpay_signature);
-  formData.append("team_name", payload.team_name);
-  formData.append("leader_name", payload.leader_name);
-  formData.append("email", payload.email);
-  formData.append("phone", payload.phone);
-  if (payload.college) formData.append("college", payload.college);
-  formData.append("team_size", String(payload.team_size || 1));
-
-  if (payload.preferred_domain) formData.append("preferred_domain", payload.preferred_domain);
-  if (payload.github_url) formData.append("github_url", payload.github_url);
-  if (payload.linkedin_url) formData.append("linkedin_url", payload.linkedin_url);
-  if (payload.project_title) formData.append("project_title", payload.project_title);
-  if (payload.project_description) formData.append("project_description", payload.project_description);
-  if (payload.problem_statement) formData.append("problem_statement", payload.problem_statement);
-  if (payload.proposed_solution) formData.append("proposed_solution", payload.proposed_solution);
-  if (payload.tech_stack) formData.append("tech_stack", payload.tech_stack);
-  if (payload.expected_impact) formData.append("expected_impact", payload.expected_impact);
-  if (payload.demo_url) formData.append("demo_url", payload.demo_url);
-  if (payload.portfolio_url) formData.append("portfolio_url", payload.portfolio_url);
-  if (payload.other_links) formData.append("other_links", payload.other_links);
-
-  formData.append("consent_service", "true");
-  formData.append("consent_marketing_email", String(!!payload.consent_marketing_email));
-  formData.append("consent_marketing_sms", String(!!payload.consent_marketing_sms));
-  formData.append("consent_marketing_whatsapp", String(!!payload.consent_marketing_whatsapp));
-
-  if (payload.members && payload.members.length > 0) {
-    formData.append("members", JSON.stringify(payload.members));
-  }
-
-  if (payload.file) {
-    formData.append("presentation", payload.file);
-  }
+  const body = {
+    razorpay_order_id: payload.razorpay_order_id,
+    razorpay_payment_id: payload.razorpay_payment_id,
+    razorpay_signature: payload.razorpay_signature,
+    team_name: payload.team_name,
+    leader_name: payload.leader_name,
+    email: payload.email,
+    phone: payload.phone,
+    college: payload.college || "",
+    team_size: payload.team_size || 1,
+    idea_drive_link: payload.idea_drive_link,
+    ppt_url: payload.idea_drive_link || payload.ppt_url || "",
+    preferred_domain: payload.preferred_domain,
+    github_url: payload.github_url,
+    linkedin_url: payload.linkedin_url,
+    project_title: payload.project_title,
+    project_description: payload.project_description,
+    problem_statement: payload.problem_statement,
+    proposed_solution: payload.proposed_solution,
+    tech_stack: payload.tech_stack,
+    expected_impact: payload.expected_impact,
+    demo_url: payload.demo_url,
+    portfolio_url: payload.portfolio_url,
+    other_links: payload.other_links,
+    consent_service: true,
+    consent_marketing_email: Boolean(payload.consent_marketing_email),
+    consent_marketing_sms: Boolean(payload.consent_marketing_sms),
+    consent_marketing_whatsapp: Boolean(payload.consent_marketing_whatsapp),
+    members: payload.members || [],
+  };
 
   const response = await fetch(`${API_BASE_URL}/api/verify-payment`, {
     method: "POST",
-    body: formData,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 
   const contentType = response.headers.get("content-type") || "";
@@ -230,7 +224,8 @@ export async function verifyPaymentAndRegister(
       return {
         success: true,
         status: responseData.status || "paid",
-        playerId: responseData.playerId,
+        playerId: responseData.playerId || responseData.r_id,
+        r_id: responseData.r_id || responseData.playerId,
         teamName: responseData.teamName || payload.team_name,
         orderId: responseData.order_id || payload.razorpay_order_id,
       };
@@ -290,185 +285,34 @@ export async function getRegistrationStatus(
   return data as any;
 }
 
-export interface UploadPptResponse {
-  success: boolean;
-  /** Storage path in Supabase (e.g. "submissions/1234_file.pdf"). NOT a public URL. */
-  storagePath: string;
-  /** Direct URL or signed URL for immediate browser preview. */
-  url: string;
-  fileName: string;
-  size: number;
-  mimeType?: string;
-}
-
 /**
- * Upload presentation (PPT, PPTX, or PDF) up to 20MB.
- * Prioritizes direct Supabase Storage upload to avoid Vercel 4.5MB payload limit,
- * with fallback to backend server if configured.
+ * Admin: fetch registrations with server-side pagination, search, and filtering.
  */
-export async function uploadPptFile(file: File): Promise<UploadPptResponse> {
-  // 1. Prioritize backend upload (handles local disk + Supabase hybrid storage without client-side RLS/DNS issues)
-  const uploadEndpoint = API_BASE_URL ? `${API_BASE_URL}/api/upload/ppt` : "/api/upload/ppt";
-  try {
-    const formData = new FormData();
-    formData.append("ppt", file);
-
-    const response = await fetch(uploadEndpoint, {
-      method: "POST",
-      body: formData,
-    });
-
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const responseData = await response.json();
-      if (response.ok) {
-        return responseData;
-      }
-      throw new Error(responseData?.error || responseData?.detail || "Upload failed");
-    } else {
-      const text = await response.text();
-      if (!response.ok) {
-        throw new Error(`Upload server error (${response.status}): ${text.slice(0, 100)}`);
-      }
-    }
-  } catch (backendErr: any) {
-    console.warn("[Upload] Backend upload notice, attempting direct Supabase:", backendErr?.message);
-    if (!backendErr?.message?.includes("Failed to fetch") && !backendErr?.message?.includes("NetworkError")) {
-      // If backend returned a specific error, throw it so the user sees the exact message
-      throw backendErr;
-    }
+export async function getAdminRegistrations(params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  payment_status?: string;
+  registration_status?: string;
+  review_status?: string;
+}): Promise<any[]> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.q) query.set("q", params.q);
+  if (params?.payment_status && params.payment_status !== "all") {
+    query.set("payment_status", params.payment_status);
+  }
+  if (params?.registration_status && params.registration_status !== "all") {
+    query.set("registration_status", params.registration_status);
+  }
+  if (params?.review_status && params.review_status !== "all") {
+    query.set("review_status", params.review_status);
   }
 
-  // 2. Direct Supabase Storage fallback
+  const qs = query.toString();
   try {
-    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `submissions/${Date.now()}_${cleanName}`;
-
-    const { data, error } = await supabase.storage
-      .from("apex-presentations")
-      .upload(storagePath, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-
-    if (!error && data?.path) {
-      const { data: pubData } = supabase.storage
-        .from("apex-presentations")
-        .getPublicUrl(data.path);
-
-      return {
-        success: true,
-        storagePath: data.path,
-        url: pubData?.publicUrl || "",
-        fileName: file.name,
-        size: file.size,
-        mimeType: file.type,
-      };
-    }
-
-    if (error) {
-      throw new Error(error.message);
-    }
-  } catch (directErr: any) {
-    throw new Error(directErr.message || "Failed to upload file to storage.");
-  }
-
-  throw new Error("Unable to save file to storage. Please try again.");
-}
-
-/**
- * Fetch a fresh 1-hour signed URL for a PPT stored in Supabase Storage.
- */
-export async function getPptSignedUrl(storagePath: string): Promise<string | null> {
-  try {
-    const { data } = await supabase.storage
-      .from("apex-presentations")
-      .createSignedUrl(storagePath, 3600);
-
-    if (data?.signedUrl) return data.signedUrl;
-
-    const { data: pubData } = supabase.storage
-      .from("apex-presentations")
-      .getPublicUrl(storagePath);
-
-    if (pubData?.publicUrl) return pubData.publicUrl;
-  } catch {}
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/upload/signed-url?path=${encodeURIComponent(storagePath)}`,
-    );
-    if (response.ok) {
-      const json = await response.json();
-      return json.url ?? null;
-    }
-  } catch {}
-
-  return null;
-}
-
-/**
- * Admin: get a signed download URL for a specific team's PPT.
- */
-export async function getAdminPptSignedUrl(
-  teamId: string,
-  storagePath?: string | null,
-): Promise<{
-  signedUrl: string;
-  fileName: string;
-  mimeType: string;
-} | null> {
-  if (storagePath) {
-    try {
-      const { data } = await supabase.storage
-        .from("apex-presentations")
-        .createSignedUrl(storagePath, 3600);
-
-      if (data?.signedUrl) {
-        return {
-          signedUrl: data.signedUrl,
-          fileName: storagePath.split("/").pop() || "presentation.pdf",
-          mimeType: "application/pdf",
-        };
-      }
-
-      const { data: pubData } = supabase.storage
-        .from("apex-presentations")
-        .getPublicUrl(storagePath);
-
-      if (pubData?.publicUrl) {
-        return {
-          signedUrl: pubData.publicUrl,
-          fileName: storagePath.split("/").pop() || "presentation.pdf",
-          mimeType: "application/pdf",
-        };
-      }
-    } catch {}
-  }
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(teamId)}/ppt-url`,
-      { headers: getAdminHeaders() },
-    );
-    if (response.ok) {
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const json = await response.json();
-        return json.data ?? json;
-      }
-    }
-  } catch {}
-
-  return null;
-}
-
-/**
- * Admin: fetch all registrations.
- */
-export async function getAdminRegistrations(): Promise<any[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/registrations`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/registrations${qs ? `?${qs}` : ""}`, {
       headers: getAdminHeaders(),
     });
     if (response.ok) {
@@ -522,6 +366,39 @@ export async function updateAdminTeamStatus(id: string, status: string): Promise
 
   if (error) throw error;
   return data;
+}
+
+/**
+ * Admin: update registration review status and notes.
+ */
+export async function updateAdminReviewStatus(
+  id: string,
+  params: { review_status?: "pending" | "shortlisted" | "rejected"; admin_notes?: string },
+): Promise<any> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/registrations/${encodeURIComponent(id)}/review`,
+      {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+        body: JSON.stringify(params),
+      },
+    );
+    if (response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const json = await response.json();
+        return json.data ?? json;
+      }
+    }
+  } catch {}
+
+  if (params.review_status) {
+    return updateAdminTeamStatus(
+      id,
+      params.review_status === "shortlisted" ? "approved" : params.review_status,
+    );
+  }
 }
 
 /**

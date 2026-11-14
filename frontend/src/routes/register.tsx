@@ -4,19 +4,16 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Database,
   ExternalLink,
-  FileCheck,
   FileText,
   Github,
+  Link2,
   Linkedin,
   Loader2,
   Shield,
   Sparkles,
   Trophy,
-  UploadCloud,
   Users,
-  X,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -47,6 +44,39 @@ import {
 import { loadRazorpayScript } from "@/lib/razorpay";
 import { createOrder, verifyPaymentAndRegister } from "@/lib/api";
 import { cn } from "@/lib/utils";
+
+const GOOGLE_DRIVE_PATTERNS = [
+  /^https:\/\/(?:drive|docs)\.google\.com\/file\/d\/[a-zA-Z0-9_-]+/i,
+  /^https:\/\/(?:drive|docs)\.google\.com\/open\?id=[a-zA-Z0-9_-]+/i,
+  /^https:\/\/(?:drive|docs)\.google\.com\/drive\/(?:u\/\d+\/)?folders\/[a-zA-Z0-9_-]+/i,
+  /^https:\/\/docs\.google\.com\/presentation\/d\/[a-zA-Z0-9_-]+/i,
+];
+
+const googleDriveLinkSchema = z
+  .string({ required_error: "Please provide your Google Drive presentation link." })
+  .trim()
+  .min(1, "Please provide your Google Drive presentation link.")
+  .max(500, "Link is too long")
+  .refine(
+    (val) => {
+      const clean = val.trim();
+      return GOOGLE_DRIVE_PATTERNS.some((pattern) => pattern.test(clean));
+    },
+    { message: "Please enter a valid Google Drive link." },
+  );
+
+function GoogleDriveIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H1.2c0 1.55.4 3.1 1.2 4.5l4.2 9.35z" fill="#0066DA" />
+      <path d="M43.65 25.15L29.9 1.35c-1.35.8-2.5 1.9-3.3 3.3L1.2 52.65c-.8 1.4-1.2 2.95-1.2 4.5h27.5l16.15-32z" fill="#00AC47" />
+      <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75L86.1 57.15c.8-1.4 1.2-2.95 1.2-4.5H59.85L53.2 65.6l-3.75 6.5 13.75 23.8c1.35-.8 2.5-1.9 3.3-3.3l7.05-15.8z" fill="#EA4335" />
+      <path d="M43.65 25.15L57.4 1.35C56.05.55 54.5 0 52.85 0H34.45c-1.65 0-3.2.55-4.55 1.35l13.75 23.8z" fill="#00832D" />
+      <path d="M59.85 52.65h27.5c0-1.55-.4-3.1-1.2-4.5L73.55 25.5c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25.15l16.2 27.5z" fill="#2684FC" />
+      <path d="M43.65 25.15L27.5 52.65H59.85L43.65 25.15z" fill="#AECBFA" />
+    </svg>
+  );
+}
 
 const safeLinkValidator = (val?: string) => {
   if (!val || !val.trim()) return true;
@@ -89,7 +119,7 @@ const schema = z
     demo_url: safeLinkSchema,
     portfolio_url: safeLinkSchema,
     other_links: safeLinkSchema,
-    ppt_url: z.string().trim().min(1, "Please upload your idea presentation (PPT or PDF)").max(500),
+    idea_drive_link: googleDriveLinkSchema,
     terms: z.literal(true, {
       errorMap: () => ({ message: "You must accept the APEX 1.0 rules, terms, and privacy policy" }),
     }),
@@ -145,7 +175,7 @@ export const Route = createFileRoute("/register")({
 /* ─── static info shown in the sidebar ─── */
 const CHECKLIST = [
   { icon: Users, text: "Form a team of 1 – 4 members (Leader + up to 3)" },
-  { icon: FileText, text: "Upload your idea PPT or PDF (Stored in Supabase)" },
+  { icon: FileText, text: "Provide your Google Drive presentation link (PDF/PPT)" },
   { icon: Shield, text: "Read and agree to Rules, Terms & Privacy Policy" },
   { icon: Zap, text: "Pay ₹199 entry fee per team (Round 1)" },
   { icon: Trophy, text: "Build, pitch & win from a ₹30,000 prize pool" },
@@ -173,58 +203,6 @@ function RegisterPage() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
-  // Selected PPT / PDF file state (kept in client memory until payment verification)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<{
-    name: string;
-    size: number;
-    mimeType: string;
-  } | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 20 * 1024 * 1024) {
-      setUploadError("File size exceeds 20MB limit. Please compress or choose a smaller file.");
-      toast.error("File exceeds 20MB limit");
-      return;
-    }
-
-    const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-    if (![".pdf", ".ppt", ".pptx"].includes(ext)) {
-      setUploadError("Invalid file type. Please upload a PDF, PPT, or PPTX file.");
-      toast.error("Please upload a PDF, PPT, or PPTX file");
-      return;
-    }
-
-    setUploadError(null);
-    setSelectedFile(file);
-    setUploadedFile({
-      name: file.name,
-      size: file.size,
-      mimeType: file.type || "application/octet-stream",
-    });
-    form.setValue("ppt_url", file.name, { shouldValidate: true });
-    toast.success("Presentation file attached for submission");
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setUploadedFile(null);
-    setUploadError(null);
-    form.setValue("ppt_url", "", { shouldValidate: true });
-  };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -250,7 +228,7 @@ function RegisterPage() {
       demo_url: "",
       portfolio_url: "",
       other_links: "",
-      ppt_url: "",
+      idea_drive_link: "",
       terms: false as unknown as true,
       consent_marketing_email: false,
       consent_marketing_sms: false,
@@ -276,7 +254,8 @@ function RegisterPage() {
         phone: values.phone,
         college: values.college,
         team_size: Number(values.team_size),
-        ppt_url: values.ppt_url,
+        idea_drive_link: values.idea_drive_link,
+        ppt_url: values.idea_drive_link,
         ...(values.preferred_domain !== undefined && { preferred_domain: values.preferred_domain }),
         ...(values.github_url !== undefined && { github_url: values.github_url }),
         ...(values.linkedin_url !== undefined && { linkedin_url: values.linkedin_url }),
@@ -372,6 +351,8 @@ function RegisterPage() {
               phone: values.phone,
               college: values.college,
               team_size: Number(values.team_size),
+              idea_drive_link: values.idea_drive_link,
+              ppt_url: values.idea_drive_link,
               preferred_domain: values.preferred_domain,
               github_url: values.github_url,
               linkedin_url: values.linkedin_url,
@@ -388,7 +369,6 @@ function RegisterPage() {
               consent_marketing_sms: values.consent_marketing_sms,
               consent_marketing_whatsapp: values.consent_marketing_whatsapp,
               members,
-              file: selectedFile,
             });
 
             if (verifyRes.success) {
@@ -401,7 +381,9 @@ function RegisterPage() {
                 to: "/success",
                 search: {
                   pid: verifyRes.playerId,
+                  r_id: verifyRes.r_id || verifyRes.playerId,
                   team: values.team_name,
+                  leader: values.leader_name,
                   order_id: response.razorpay_order_id,
                 },
               });
@@ -462,7 +444,7 @@ function RegisterPage() {
       <PageHeader
         code="SYSTEM_12 / ENTRY"
         title="Register your team"
-        subtitle="Form your 1–4 member team and upload your idea presentation (PPT/PDF). ₹199 entry fee applies for Round 1."
+        subtitle="Form your 1–4 member team and submit your Google Drive presentation link. ₹199 entry fee applies for Round 1."
       />
 
       <Section className="pt-4 pb-14 sm:py-20 md:py-28 px-3 sm:px-8 max-w-full overflow-hidden">
@@ -698,104 +680,74 @@ function RegisterPage() {
                     </div>
                   </div>
 
-                  {/* SECTION 04 – IDEA SUBMISSION (UPLOAD) */}
+                  {/* SECTION 04 – IDEA SUBMISSION */}
                   <div className="w-full min-w-0 max-w-full">
                     <div className="mb-3.5 sm:mb-4 flex items-center gap-2.5 sm:gap-3">
                       <SystemLabel className="text-primary text-[0.65rem] sm:text-xs shrink-0">
-                        SECTION_04 / IDEA UPLOAD
+                        SECTION_04 / IDEA SUBMISSION
                       </SystemLabel>
                       <div className="h-px flex-1 bg-border/40" />
                     </div>
 
-                    <FormField
-                      control={form.control}
-                      name="ppt_url"
-                      render={() => (
-                        <FormItem className="w-full min-w-0 max-w-full">
-                          <FormLabel className="font-mono text-[0.7rem] sm:text-xs tracking-wider text-muted-foreground uppercase flex flex-col sm:flex-row sm:items-center justify-between gap-1 w-full min-w-0">
-                            <span className="break-words">UPLOAD PPT / PDF PRESENTATION *</span>
-                            <span className="text-[0.65rem] text-primary/80 lowercase shrink-0">
-                              .pdf, .ppt, .pptx (max 20mb)
-                            </span>
-                          </FormLabel>
+                    <div className="glass-panel rounded-xl border border-border/80 bg-card/40 p-3.5 sm:p-5 space-y-3.5">
+                      <FormField
+                        control={form.control}
+                        name="idea_drive_link"
+                        render={({ field }) => (
+                          <FormItem className="w-full min-w-0 max-w-full">
+                            <FormLabel className="font-mono text-[0.7rem] sm:text-xs tracking-wider text-muted-foreground uppercase flex items-center justify-between gap-2 w-full min-w-0">
+                              <span className="flex items-center gap-2 min-w-0">
+                                <GoogleDriveIcon className="h-4 w-4 shrink-0" />
+                                <span className="truncate">GOOGLE DRIVE PRESENTATION LINK</span>
+                                <span className="text-destructive">*</span>
+                              </span>
+                              <span className="flex items-center gap-1 text-[0.65rem] text-muted-foreground/70 lowercase shrink-0">
+                                <ExternalLink className="h-3 w-3" />
+                                <span>shareable link</span>
+                              </span>
+                            </FormLabel>
 
-                          <FormControl>
-                            <div className="mt-2 w-full min-w-0 max-w-full">
-                              {!uploadedFile ? (
-                                <label
-                                  htmlFor="ppt-file-input"
-                                  className={cn(
-                                    "relative flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/40 p-4 sm:p-8 text-center cursor-pointer transition-all duration-200 hover:border-primary/60 hover:bg-card/70 group active:scale-[0.99] w-full min-w-0 max-w-full overflow-hidden",
-                                    form.formState.errors.ppt_url && "border-destructive/60"
-                                  )}
-                                >
-                                  <input
-                                    id="ppt-file-input"
-                                    type="file"
-                                    accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                                    className="sr-only"
-                                    onChange={handleFileSelect}
-                                  />
-                                  <div className="grid h-10 w-10 sm:h-12 sm:w-12 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-transform duration-200 group-hover:scale-110">
-                                    <UploadCloud className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                                  </div>
-                                  <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm font-medium text-foreground px-2 break-words">
-                                    Tap to select or drop presentation
-                                  </p>
-                                  <p className="mt-1 text-[0.7rem] sm:text-xs text-muted-foreground px-2 break-words">
-                                    Accepted formats: PPT, PPTX, or PDF · Max file size: 20MB
-                                  </p>
-                                  <div className="mt-2.5 sm:mt-3 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/50 px-2.5 sm:px-3 py-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground max-w-full">
-                                    <Database className="h-3 w-3 text-primary shrink-0" />
-                                    <span className="truncate">Uploaded securely to Supabase Storage upon payment</span>
-                                  </div>
-                                </label>
-                              ) : (
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-primary/40 bg-card/60 p-3 sm:p-4 w-full min-w-0 max-w-full overflow-hidden">
-                                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 overflow-hidden">
-                                    <div className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-lg border border-primary/40 bg-primary/15 text-primary">
-                                      <FileCheck className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    </div>
-                                    <div className="min-w-0 flex-1 overflow-hidden">
-                                      <p className="truncate text-xs sm:text-sm font-semibold text-foreground block max-w-full" title={uploadedFile.name}>
-                                        {uploadedFile.name}
-                                      </p>
-                                      <p className="font-mono text-[0.65rem] sm:text-xs text-muted-foreground truncate block">
-                                        {formatBytes(uploadedFile.size)} · Attached (Submits on payment)
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0 pt-2 sm:pt-0 border-t border-border/30 sm:border-0">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={handleRemoveFile}
-                                      className="h-9 px-2.5 font-mono text-xs text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
-                                    >
-                                      <X className="h-3.5 w-3.5 mr-1" />
-                                      Change File
-                                    </Button>
-                                  </div>
+                            <FormControl>
+                              <div className="relative mt-1.5 w-full">
+                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                  <Link2 className="h-4 w-4 text-muted-foreground/60" />
                                 </div>
-                              )}
+                                <Input
+                                  {...field}
+                                  type="url"
+                                  autoComplete="off"
+                                  placeholder="https://drive.google.com/file/d/..."
+                                  className={cn(
+                                    "h-10 text-sm pl-9 pr-3 min-w-0 w-full transition-all focus-visible:border-[#ff1744] focus-visible:ring-[#ff1744]/30 focus-visible:shadow-[0_0_12px_rgba(255,23,68,0.25)]",
+                                    form.formState.errors.idea_drive_link && "border-destructive/60 focus-visible:border-destructive"
+                                  )}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage className="font-mono text-[0.7rem] break-words" />
 
-                              {uploadError && (
-                                <p className="mt-2 font-mono text-xs text-destructive flex items-center gap-1.5 break-words">
-                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                                  <span>{uploadError}</span>
-                                </p>
-                              )}
+                            <p className="text-[0.7rem] sm:text-xs text-muted-foreground leading-relaxed break-words">
+                              Upload your idea presentation (PPT/PDF) to Google Drive and paste its shareable link here.
+                            </p>
+
+                            <div className="rounded-lg border border-border/40 bg-background/50 p-3 space-y-1.5">
+                              <div className="flex items-start gap-2 text-[0.7rem] sm:text-xs text-muted-foreground">
+                                <span className="mt-1 h-1 w-1 rounded-full bg-primary shrink-0" />
+                                <span>Accepted presentation formats: <strong className="text-foreground font-medium">PDF, PPT, PPTX</strong>.</span>
+                              </div>
+                              <div className="flex items-start gap-2 text-[0.7rem] sm:text-xs text-muted-foreground">
+                                <span className="mt-1 h-1 w-1 rounded-full bg-primary shrink-0" />
+                                <span>Ensure Google Drive access is set to <strong className="text-[#00E5FF] font-medium">"Anyone with the link – Viewer"</strong>.</span>
+                              </div>
+                              <div className="flex items-start gap-2 text-[0.7rem] sm:text-xs text-muted-foreground">
+                                <span className="mt-1 h-1 w-1 rounded-full bg-primary shrink-0" />
+                                <span>Our judging panel will use this link for Round 1 evaluation.</span>
+                              </div>
                             </div>
-                          </FormControl>
-                          <FormMessage className="font-mono text-[0.7rem] break-words" />
-                        </FormItem>
-                      )}
-                    />
-                    <p className="mt-2 text-[0.7rem] sm:text-xs text-muted-foreground leading-relaxed break-words">
-                      Upload your idea presentation (PPT or PDF). It will be securely stored in Supabase and evaluated by the official judging panel for Round 1 shortlisting.
-                    </p>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
 
                   {/* Divider */}

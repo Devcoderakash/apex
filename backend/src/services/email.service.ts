@@ -109,22 +109,38 @@ export async function sendRegistrationConfirmationEmail(
   }
 
   // 3. Prepare email data
+  const rawLeader = (team as any).team_leader_name || (team as any).leader_name || "Team Leader";
+  const rawCollege = (team as any).college_organization || (team as any).college || "";
+  const rawAmount = (team as any).amount_paid ? (team as any).amount_paid / 100 : ((team as any).payment_amount || 199);
+  const rawPaymentId = (team as any).razorpay_payment_id || (team as any).payment_id || "";
+  const rawDriveLink = (team as any).idea_drive_link || (team as any).ppt_url || "";
+  const rawAdditional: any[] = Array.isArray((team as any).additional_members)
+    ? (team as any).additional_members
+    : Array.isArray((team as any).team_members)
+      ? (team as any).team_members
+      : [];
+  const formattedMembers = rawAdditional.map((m: any, idx: number) => ({
+    full_name: typeof m === "string" ? m : m?.full_name || `Member ${idx + 2}`,
+    position: idx + 2,
+  }));
+
   const emailData: EmailRegistrationData = {
     playerId,
     teamName: team.team_name,
-    leaderName: team.leader_name,
+    leaderName: rawLeader,
     email: recipientEmail,
     phone: team.phone,
-    college: team.college,
+    college: rawCollege,
     teamSize: Number(team.team_size) || 1,
-    members: Array.isArray(team.team_members) ? team.team_members : [],
+    members: formattedMembers,
     preferredDomain: team.preferred_domain,
-    pptFileName: team.ppt_file_name,
-    pptStoragePath: team.ppt_storage_path,
-    pptUrl: team.ppt_url,
+    ideaDriveLink: rawDriveLink,
+    pptFileName: (team as any).ppt_file_name || null,
+    pptStoragePath: (team as any).ppt_storage_path || null,
+    pptUrl: rawDriveLink,
     paymentStatus: team.payment_status,
-    paymentAmount: team.payment_amount,
-    paymentId: team.payment_id,
+    paymentAmount: rawAmount,
+    paymentId: rawPaymentId,
     orderId: team.razorpay_order_id,
   };
 

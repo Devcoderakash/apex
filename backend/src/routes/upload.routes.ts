@@ -99,102 +99,14 @@ async function getFileUrl(req: Request, storagePath: string): Promise<string> {
 
 /**
  * POST /api/upload/ppt
- * Uploads presentation file with dual-tier storage:
- * 1. Attempts Supabase storage if available
- * 2. Seamlessly falls back to local persistent storage if Supabase is offline/paused
+ * DEPRECATED: File upload has been replaced by Google Drive link submission.
  */
-uploadRouter.post(
-  "/ppt",
-  (req, res, next) => {
-    upload.single("ppt")(req, res, (err: any) => {
-      if (err) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(413).json({
-            error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
-          });
-        }
-        return res.status(400).json({
-          error: err.message || "Invalid file.",
-        });
-      }
-      next();
-    });
-  },
-  async (req: Request, res: Response) => {
-    try {
-      const file = req.file;
-      if (!file) {
-        res.status(400).json({ error: "No file uploaded." });
-        return;
-      }
-
-      // Validate MIME / extension
-      const ext = path.extname(file.originalname).toLowerCase();
-      if (!ALLOWED_MIMES.includes(file.mimetype) && !ALLOWED_EXTS.includes(ext)) {
-        res.status(400).json({ error: "Only PDF, PPT, and PPTX files are allowed." });
-        return;
-      }
-
-      const timestamp = Date.now();
-      const safeName = file.originalname
-        .replace(/[^a-zA-Z0-9._-]/g, "_")
-        .replace(/_{2,}/g, "_");
-      const storagePath = `submissions/${timestamp}_${safeName}`;
-      const localFileName = `${timestamp}_${safeName}`;
-      const localFilePath = path.join(LOCAL_STORAGE_DIR, localFileName);
-
-      let uploadedToSupabase = false;
-
-      // 1. Try Supabase Storage if bucket is reachable
-      const isSupabaseReady = await ensureBucket();
-      if (isSupabaseReady) {
-        try {
-          const { error: uploadError } = await supabase.storage
-            .from(BUCKET)
-            .upload(storagePath, file.buffer, {
-              contentType: file.mimetype,
-              upsert: false,
-            });
-
-          if (!uploadError) {
-            uploadedToSupabase = true;
-            console.log(`[Upload] File saved to Supabase Storage: ${storagePath}`);
-          } else {
-            console.warn("[Upload] Supabase upload error, using local fallback:", uploadError.message);
-          }
-        } catch (supErr: any) {
-          console.warn("[Upload] Supabase storage exception, using local fallback:", supErr.message);
-        }
-      }
-
-      // 2. Always persist to local disk if Supabase is unavailable or failed
-      if (!uploadedToSupabase) {
-        fs.writeFileSync(localFilePath, file.buffer);
-        console.log(`[Upload] File saved to persistent local storage: ${localFilePath}`);
-      }
-
-      // Generate preview/download URL
-      const fileUrl = await getFileUrl(req, storagePath);
-
-      return res.status(200).json({
-        success: true,
-        storagePath,
-        fileName: file.originalname,
-        size: file.size,
-        mimeType: file.mimetype,
-        url: fileUrl,
-      });
-    } catch (err: any) {
-      if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(413).json({
-          error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
-        });
-      }
-      console.error("[Upload] Unexpected error:", err);
-      return res.status(500).json({ error: err.message || "Upload failed." });
-    }
-  },
-);
+uploadRouter.post("/ppt", (_req: Request, res: Response) => {
+  return res.status(410).json({
+    success: false,
+    error: "File upload has been discontinued. Please provide a Google Drive presentation link instead.",
+  });
+});
 
 /**
  * GET /api/upload/file/:fileName

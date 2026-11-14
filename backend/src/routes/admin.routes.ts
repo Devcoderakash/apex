@@ -6,6 +6,7 @@ import {
   getStats,
   getTeamPptSignedUrl,
   sendAdminTeamEmail,
+  updateReviewStatus,
   updateSettings,
   updateTeam,
   updateTeamStatus,
@@ -18,10 +19,14 @@ adminRouter.use(authenticateAdmin);
 
 adminRouter.get("/registrations", getRegistrations);
 adminRouter.get("/registrations/:id/ppt-url", getTeamPptSignedUrl);
+adminRouter.patch("/registrations/:id/review", updateReviewStatus);
 adminRouter.post("/registrations/:id/send-email", sendAdminTeamEmail);
+
 adminRouter.get("/stats", getStats);
 adminRouter.patch("/teams/:id/status", updateTeamStatus);
+adminRouter.patch("/teams/:id/review", updateReviewStatus);
 adminRouter.put("/teams/:id", updateTeam);
 adminRouter.delete("/teams/:id", deleteTeam);
+
 adminRouter.get("/settings", getSettings);
 adminRouter.post("/settings", updateSettings);

@@ -219,6 +219,7 @@ export type Database = {
           payment_status: string | null
           phone: string
           player_id: string
+          idea_drive_link: string
           ppt_url: string | null
           preferred_domain: string | null
           payment_order_id?: string | null
@@ -246,6 +247,7 @@ export type Database = {
           payment_status?: string | null
           phone: string
           player_id?: string
+          idea_drive_link: string
           ppt_url?: string | null
           preferred_domain?: string | null
           payment_order_id?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           payment_status?: string | null
           phone?: string
           player_id?: string
+          idea_drive_link?: string
           ppt_url?: string | null
           preferred_domain?: string | null
           payment_order_id?: string | null
