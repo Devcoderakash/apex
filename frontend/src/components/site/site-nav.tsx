@@ -100,14 +100,14 @@ export function SiteNav() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out",
+        "fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out pointer-events-none",
         scrolled ? "px-2.5 pt-2 sm:px-4 sm:pt-2.5" : "px-2 sm:px-4 pt-1 sm:pt-2",
       )}
     >
       <nav
         aria-label="Main"
         className={cn(
-          "mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ease-out",
+          "pointer-events-auto mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ease-out",
           scrolled
             ? "glass-panel rounded-xl px-3.5 py-2 sm:px-5 sm:py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.6)] border-primary/30"
             : "rounded-xl border border-border/40 bg-background/70 px-4 py-2.5 sm:px-6 sm:py-3 backdrop-blur-md",
@@ -196,7 +196,7 @@ export function SiteNav() {
       <div
         className={cn(
           "fixed inset-0 top-[3.8rem] bg-black/70 backdrop-blur-sm lg:hidden z-40 transition-opacity duration-200",
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none hidden",
         )}
         onClick={() => setOpen(false)}
         aria-hidden="true"
@@ -206,7 +206,7 @@ export function SiteNav() {
           "relative z-50 mx-auto mt-2 max-w-6xl px-3 lg:hidden transition-all duration-250 ease-out",
           open
             ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 -translate-y-2 pointer-events-none",
+            : "opacity-0 -translate-y-2 pointer-events-none hidden",
         )}
       >
         <ul className="glass-panel grid gap-1 rounded-xl p-3 shadow-2xl border-primary/30 bg-background/95 backdrop-blur-2xl max-h-[calc(100svh-5rem)] overflow-y-auto">

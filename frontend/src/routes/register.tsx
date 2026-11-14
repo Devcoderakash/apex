@@ -7,10 +7,12 @@ import {
   ExternalLink,
   FileText,
   Github,
+  Info,
   Link2,
   Linkedin,
   Loader2,
   Shield,
+  Smartphone,
   Sparkles,
   Trophy,
   Users,
@@ -304,7 +306,10 @@ function RegisterPage() {
 
       toast.loading("Opening Razorpay Checkout...", { id: "rzp_checkout" });
 
-      // 3. Open Razorpay Checkout modal
+      // Clean contact number for Razorpay mobile compatibility
+      const cleanContact = values.phone.replace(/[^0-9+]/g, "");
+
+      // 3. Open Razorpay Checkout modal with optimized UPI flow
       const options = {
         key: keyId as string,
         amount: orderData.amount, // In paise (₹10 = 1000)
@@ -316,7 +321,7 @@ function RegisterPage() {
         prefill: {
           name: values.leader_name,
           email: values.email,
-          contact: values.phone,
+          contact: cleanContact,
         },
         notes: {
           team_name: values.team_name,
@@ -325,6 +330,33 @@ function RegisterPage() {
         },
         theme: {
           color: "#dc2626",
+        },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay via UPI (GPay, PhonePe, Paytm, BHIM)",
+                instruments: [
+                  {
+                    method: "upi",
+                    flows: ["intent", "collect"],
+                  },
+                ],
+              },
+              other: {
+                name: "Cards, NetBanking & Wallets",
+                instruments: [
+                  { method: "card" },
+                  { method: "netbanking" },
+                  { method: "wallet" },
+                ],
+              },
+            },
+            sequence: ["block.upi", "block.other"],
+            preferences: {
+              show_default_blocks: true,
+            },
+          },
         },
         modal: {
           ondismiss: () => {
@@ -444,6 +476,7 @@ function RegisterPage() {
 
   const size = Number(form.watch("team_size"));
   const terms = form.watch("terms");
+  const isInAppBrowser = typeof window !== "undefined" && /Instagram|FBAN|FBAV|WhatsApp|Telegram|Line|Twitter/i.test(navigator?.userAgent || "");
 
   return (
     <>
@@ -454,7 +487,7 @@ function RegisterPage() {
       />
 
       <Section className="pt-4 pb-14 sm:py-20 md:py-28 px-3 sm:px-8 max-w-full overflow-hidden">
-        <Reveal className="w-full min-w-0 max-w-full">
+        <div className="w-full min-w-0 max-w-full">
           {/* ── two-column layout: form on top on mobile (order-1), instructions below (order-2) ── */}
           <div className="flex flex-col lg:grid lg:grid-cols-[1fr_2fr] gap-8 lg:gap-10 w-full min-w-0 max-w-full">
 
@@ -621,10 +654,10 @@ function RegisterPage() {
                         name="team_size"
                         render={({ field }) => (
                           <FormItem className="min-w-0 w-full">
-                            <FormLabel className="system-label text-[0.65rem] sm:text-xs">TEAM SIZE</FormLabel>
+                            <FormLabel className="system-label text-[0.65rem] sm:text-xs cursor-pointer select-none py-1 block">TEAM SIZE</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="h-10 text-sm min-w-0 w-full">
+                                <SelectTrigger className="h-11 sm:h-10 text-base sm:text-sm min-w-0 w-full touch-manipulation cursor-pointer">
                                   <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
@@ -724,7 +757,7 @@ function RegisterPage() {
                                   autoComplete="off"
                                   placeholder="https://drive.google.com/file/d/..."
                                   className={cn(
-                                    "h-10 text-sm pl-9 pr-10 min-w-0 w-full transition-all focus-visible:border-[#ff1744] focus-visible:ring-[#ff1744]/30 focus-visible:shadow-[0_0_12px_rgba(255,23,68,0.25)]",
+                                    "h-11 sm:h-10 text-base sm:text-sm pl-9 pr-10 min-w-0 w-full touch-manipulation transition-all focus-visible:border-[#ff1744] focus-visible:ring-[#ff1744]/30 focus-visible:shadow-[0_0_12px_rgba(255,23,68,0.25)]",
                                     GOOGLE_DRIVE_PATTERNS.some((p) => p.test((field.value || "").trim())) && "border-emerald-500/60 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/25",
                                     form.formState.errors.idea_drive_link && "border-destructive/60 focus-visible:border-destructive"
                                   )}
@@ -883,6 +916,30 @@ function RegisterPage() {
                     </div>
                   </div>
 
+                  {/* Payment Methods & Mobile UPI Guidance */}
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 sm:p-4 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="font-mono text-[0.65rem] sm:text-xs font-semibold text-primary flex items-center gap-1.5">
+                        <Smartphone className="h-3.5 w-3.5 text-primary" />
+                        INSTANT PAYMENT METHODS · ₹10 PER TEAM
+                      </span>
+                      <span className="font-mono text-[0.6rem] text-muted-foreground">
+                        Razorpay Secured
+                      </span>
+                    </div>
+                    <p className="text-[0.72rem] sm:text-xs text-muted-foreground leading-relaxed">
+                      <strong className="text-foreground">UPI Supported:</strong> Google Pay, PhonePe, Paytm, BHIM, and any UPI ID / QR code. Credit/Debit Cards & NetBanking also available.
+                    </p>
+                    {isInAppBrowser && (
+                      <div className="mt-2 pt-2 border-t border-amber-500/20 flex items-start gap-2 text-[0.7rem] sm:text-xs text-amber-300 leading-relaxed">
+                        <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Instagram / WhatsApp User?</strong> If UPI apps don’t open directly inside this app, tap <strong>three dots (⋮)</strong> at the top-right and choose <strong>"Open in Chrome / Safari"</strong>, or enter your UPI ID in Razorpay checkout.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Submit */}
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2 w-full min-w-0">
                     <p className="font-mono text-[0.6rem] sm:text-[0.65rem] tracking-wider text-muted-foreground/70 order-2 sm:order-1 text-center sm:text-left break-words">
@@ -911,7 +968,7 @@ function RegisterPage() {
               </Form>
             </div>
           </div>
-        </Reveal>
+        </div>
       </Section>
     </>
   );
@@ -936,14 +993,16 @@ function Field({
       name={name}
       render={({ field }) => (
         <FormItem className="min-w-0 w-full">
-          <FormLabel className="system-label text-[0.65rem] sm:text-xs truncate block">{label}</FormLabel>
+          <FormLabel className="system-label text-[0.65rem] sm:text-xs truncate block cursor-pointer select-none py-1">
+            {label}
+          </FormLabel>
           <FormControl>
             <Input
               {...field}
               value={typeof field.value === "string" ? field.value : ""}
               type={type}
               placeholder={placeholder}
-              className="h-10 text-sm min-w-0 w-full"
+              className="h-11 sm:h-10 text-base sm:text-sm min-w-0 w-full touch-manipulation focus:ring-1 focus:ring-primary/50"
             />
           </FormControl>
           <FormMessage className="text-xs break-words" />
