@@ -648,8 +648,8 @@ function RegisterPage() {
                         <span className="font-semibold text-primary">SOLO PARTICIPANT ·</span> The team leader specified in Section 01 is registered as the sole participant. No additional team members are required.
                       </div>
                     ) : (
-                      <>
-                        <p className="mb-3 font-mono text-[0.6rem] sm:text-[0.65rem] tracking-wider text-muted-foreground/70 break-words">
+                      <div className="space-y-3">
+                        <p className="font-mono text-[0.6rem] sm:text-[0.65rem] tracking-wider text-muted-foreground/70 break-words">
                           TEAM LEADER IS ALREADY COUNTED · ADD REMAINING MEMBERS BELOW
                         </p>
                         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
@@ -657,10 +657,10 @@ function RegisterPage() {
                           {size >= 3 ? <Field form={form} name="member2" label="ADDITIONAL MEMBER 2" placeholder="Member name" /> : null}
                           {size >= 4 ? <Field form={form} name="member3" label="ADDITIONAL MEMBER 3" placeholder="Member name" /> : null}
                         </div>
-                        <p className="mt-2.5 font-mono text-[0.6rem] sm:text-[0.65rem] tracking-wider text-muted-foreground/70 break-words">
+                        <p className="font-mono text-[0.6rem] sm:text-[0.65rem] tracking-wider text-muted-foreground/70 break-words">
                           ↑ SLOTS ADJUST WITH TEAM SIZE · LEADER + ABOVE = TOTAL TEAM
                         </p>
-                      </>
+                      </div>
                     )}
                   </div>
 
@@ -718,10 +718,16 @@ function RegisterPage() {
                                   autoComplete="off"
                                   placeholder="https://drive.google.com/file/d/..."
                                   className={cn(
-                                    "h-10 text-sm pl-9 pr-3 min-w-0 w-full transition-all focus-visible:border-[#ff1744] focus-visible:ring-[#ff1744]/30 focus-visible:shadow-[0_0_12px_rgba(255,23,68,0.25)]",
+                                    "h-10 text-sm pl-9 pr-10 min-w-0 w-full transition-all focus-visible:border-[#ff1744] focus-visible:ring-[#ff1744]/30 focus-visible:shadow-[0_0_12px_rgba(255,23,68,0.25)]",
+                                    GOOGLE_DRIVE_PATTERNS.some((p) => p.test((field.value || "").trim())) && "border-emerald-500/60 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/25",
                                     form.formState.errors.idea_drive_link && "border-destructive/60 focus-visible:border-destructive"
                                   )}
                                 />
+                                {GOOGLE_DRIVE_PATTERNS.some((p) => p.test((field.value || "").trim())) && (
+                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <CheckCircle2 className="h-4 w-4 text-emerald-400 animate-in fade-in zoom-in-95 duration-200" />
+                                  </div>
+                                )}
                               </div>
                             </FormControl>
                             <FormMessage className="font-mono text-[0.7rem] break-words" />

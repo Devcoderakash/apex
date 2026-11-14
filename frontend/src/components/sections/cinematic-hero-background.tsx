@@ -35,22 +35,33 @@ export function CinematicHeroBackground() {
     let currentY = 0;
     let rafId: number;
 
+    const updateParallax = () => {
+      // Smooth damping (lerp)
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
+      
+      // Only update and request frame if there is meaningful delta
+      if (Math.abs(dx) > 0.0005 || Math.abs(dy) > 0.0005) {
+        currentX += dx * 0.05;
+        currentY += dy * 0.05;
+
+        if (rootRef.current) {
+          rootRef.current.style.setProperty("--m-x", currentX.toFixed(4));
+          rootRef.current.style.setProperty("--m-y", currentY.toFixed(4));
+        }
+        rafId = requestAnimationFrame(updateParallax);
+      } else {
+        rafId = 0;
+      }
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       // Normalize to [-1, 1] relative to window center
       targetX = (e.clientX / window.innerWidth - 0.5) * 2;
       targetY = (e.clientY / window.innerHeight - 0.5) * 2;
-    };
-
-    const updateParallax = () => {
-      // Smooth damping (lerp)
-      currentX += (targetX - currentX) * 0.05;
-      currentY += (targetY - currentY) * 0.05;
-
-      if (rootRef.current) {
-        rootRef.current.style.setProperty("--m-x", currentX.toFixed(4));
-        rootRef.current.style.setProperty("--m-y", currentY.toFixed(4));
+      if (!rafId) {
+        rafId = requestAnimationFrame(updateParallax);
       }
-      rafId = requestAnimationFrame(updateParallax);
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
@@ -58,7 +69,7 @@ export function CinematicHeroBackground() {
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -139,11 +150,15 @@ export function CinematicHeroBackground() {
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    // Pause when hero is not visible
+    // Pause when hero is not visible, restart when visible
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          const wasVisible = isVisible;
           isVisible = entry.isIntersecting;
+          if (isVisible && !wasVisible && !animationId) {
+            animationId = requestAnimationFrame(render);
+          }
         });
       },
       { threshold: 0.05 },
@@ -152,7 +167,11 @@ export function CinematicHeroBackground() {
 
     // Pause when tab is inactive
     const handleVisibilityChange = () => {
+      const wasVisible = isVisible;
       isVisible = document.visibilityState === "visible";
+      if (isVisible && !wasVisible && !animationId) {
+        animationId = requestAnimationFrame(render);
+      }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -160,7 +179,7 @@ export function CinematicHeroBackground() {
 
     const render = () => {
       if (!isVisible) {
-        animationId = requestAnimationFrame(render);
+        animationId = 0;
         return;
       }
 

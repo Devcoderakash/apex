@@ -33,29 +33,44 @@ export function AmbientBackground() {
     let targetY = -9999;
     let currentX = -9999;
     let currentY = -9999;
-    let rafId: number;
+    let rafId: number = 0;
+
+    const tick = () => {
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
+
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+        currentX += dx * 0.08;
+        currentY += dy * 0.08;
+        if (glowRef.current) {
+          glowRef.current.style.setProperty("--gx", `${currentX.toFixed(1)}px`);
+          glowRef.current.style.setProperty("--gy", `${currentY.toFixed(1)}px`);
+        }
+        rafId = requestAnimationFrame(tick);
+      } else {
+        currentX = targetX;
+        currentY = targetY;
+        if (glowRef.current) {
+          glowRef.current.style.setProperty("--gx", `${currentX.toFixed(1)}px`);
+          glowRef.current.style.setProperty("--gy", `${currentY.toFixed(1)}px`);
+        }
+        rafId = 0;
+      }
+    };
 
     const onMove = (e: MouseEvent) => {
       targetX = e.clientX;
       targetY = e.clientY;
-    };
-
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.07;
-      currentY += (targetY - currentY) * 0.07;
-      if (glowRef.current) {
-        glowRef.current.style.setProperty("--gx", `${currentX.toFixed(1)}px`);
-        glowRef.current.style.setProperty("--gy", `${currentY.toFixed(1)}px`);
+      if (!rafId) {
+        rafId = requestAnimationFrame(tick);
       }
-      rafId = requestAnimationFrame(tick);
     };
 
     window.addEventListener("mousemove", onMove, { passive: true });
-    rafId = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 

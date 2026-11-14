@@ -6,6 +6,7 @@ import {
   useRouter,
   useRouterState,
 } from "@tanstack/react-router";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -89,15 +90,25 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
+  const prefersReduced = useReducedMotion();
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Global ambient animated background — purely decorative, z-0, pointer-events:none */}
       {isAdmin ? null : <AmbientBackground />}
       {isAdmin ? null : <SiteNav />}
-      <main id="main" className="w-full max-w-full overflow-x-hidden">
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+      <main id="main" className="w-full max-w-full overflow-x-hidden min-h-[calc(100vh-4rem)]">
+        {/* Subtle, flicker-free page fade-in on route change */}
+        <motion.div
+          key={pathname}
+          initial={prefersReduced ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-full"
+        >
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </motion.div>
       </main>
       {isAdmin ? null : <SiteFooter />}
       <CookieConsentBanner />
