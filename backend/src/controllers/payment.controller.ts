@@ -429,7 +429,7 @@ export async function handleWebhook(req: Request, res: Response) {
         const notes = paymentEntity.notes || {};
         const pending = getPendingCheckout(orderId);
 
-        await registerPaidTeam({
+        const { registration } = await registerPaidTeam({
           razorpay_order_id: orderId,
           razorpay_payment_id: paymentId,
           amount_paid: paymentEntity?.amount || REGISTRATION_FEE_PAISE,
@@ -445,7 +445,12 @@ export async function handleWebhook(req: Request, res: Response) {
           terms_accepted: true,
         });
 
-        console.log(`[Razorpay Webhook] Order ${orderId} confirmed via webhook`);
+        // Asynchronously trigger participant & admin confirmation emails
+        sendRegistrationConfirmationEmail(registration.r_id || orderId).catch((emailErr) => {
+          console.warn("[Razorpay Webhook] Email dispatch notice:", emailErr.message);
+        });
+
+        console.log(`[Razorpay Webhook] Order ${orderId} confirmed via webhook (${registration.r_id})`);
       }
     }
 

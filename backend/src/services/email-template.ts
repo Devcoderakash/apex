@@ -214,7 +214,13 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                       }
                       <tr>
                         <td style="padding: 6px 0; font-size: 12px; color: #9CA3AF;">Idea Presentation:</td>
-                        <td style="padding: 6px 0; font-size: 12px; color: #00E5FF; font-weight: 600;">${presentationStatus}</td>
+                        <td style="padding: 6px 0; font-size: 12px; color: #00E5FF; font-weight: 600;">
+                          ${
+                            presentationLink
+                              ? `<a href="${presentationLink}" target="_blank" style="color: #00E5FF; text-decoration: underline;">Google Drive Presentation Link &rarr;</a>`
+                              : presentationStatus
+                          }
+                        </td>
                       </tr>
                       <tr>
                         <td style="padding: 6px 0; font-size: 12px; color: #9CA3AF;">Payment Status:</td>
@@ -309,7 +315,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
               <div style="margin-top: 14px; font-size: 11px; color: #6B7280; line-height: 18px;">
                 APEX//1.0 Organizing Team<br />
                 Bhopal, Madhya Pradesh<br />
-                <a href="mailto:lodhiakash286@gmail.com" style="color: #FF1744; text-decoration: none;">lodhiakash286@gmail.com</a>
+                <a href="mailto:apexhackathon2k26@gmail.com" style="color: #FF1744; text-decoration: none;">apexhackathon2k26@gmail.com</a>
               </div>
               <div style="margin-top: 16px; font-size: 10px; color: #4B5563;">
                 This is an automated registration confirmation email. Please contact the organizing team for assistance.
@@ -347,7 +353,7 @@ Team Leader     : ${data.leaderName}
 Registered Email: ${data.email}
 Contact Number  : ${data.phone}
 ${data.college ? `College / Org   : ${data.college}\n` : ""}Team Size       : ${data.teamSize} Member${data.teamSize > 1 ? "s" : ""}
-${memberNames.length > 0 ? `Team Members    : ${memberNames.join(", ")}\n` : ""}${data.preferredDomain ? `Domain          : ${data.preferredDomain}\n` : ""}Presentation    : ${presentationStatus}
+${memberNames.length > 0 ? `Team Members    : ${memberNames.join(", ")}\n` : ""}${data.preferredDomain ? `Domain          : ${data.preferredDomain}\n` : ""}Presentation    : ${presentationLink || presentationStatus}
 Payment Status  : ${paymentDisplay}
 
 --------------------------------------------------
@@ -374,8 +380,235 @@ BUILD. SOLVE. INNOVATE. TOGETHER.
 
 The Innovation League, Bhopal
 Official Website: https://apexhack.online
+Support Email   : apexhackathon2k26@gmail.com
 
 This is an automated registration confirmation email. Please contact the organizing team for assistance.
+==================================================`;
+
+  return { subject, html, text };
+}
+
+/**
+ * Generate separate Admin Notification Email
+ * Sent to apexhackathon2k26@gmail.com on every successful registration.
+ */
+export function generateAdminRegistrationNotificationEmail(data: EmailRegistrationData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
+  const subject = `[NEW REGISTRATION] ${data.teamName} — ${data.playerId} (₹10 Paid)`;
+  const presentationLink = data.ideaDriveLink || data.pptUrl || "";
+  const memberNames: string[] = [];
+  if (data.members && data.members.length > 0) {
+    data.members.forEach((m) => {
+      if (m.full_name && m.full_name.trim().length > 0) {
+        memberNames.push(m.full_name.trim());
+      }
+    });
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0B0B10; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #FFFFFF;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0B0B10;">
+    <tr>
+      <td align="center" style="padding: 24px 12px 40px 12px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #15121B; border: 1px solid #272033; border-radius: 12px; overflow: hidden;">
+          
+          <!-- ADMIN ALERT HEADER -->
+          <tr>
+            <td style="padding: 24px 32px; background: linear-gradient(180deg, #27141f 0%, #15121B 100%); border-bottom: 1px solid #33202d; text-align: left;">
+              <span style="display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #FF1744; text-transform: uppercase;">
+                APEX//1.0 ADMIN DISPATCH · NEW REGISTRATION
+              </span>
+              <div style="margin-top: 8px; font-size: 22px; font-weight: 900; color: #FFFFFF;">
+                Team: ${data.teamName}
+              </div>
+              <div style="margin-top: 4px; font-size: 13px; color: #10B981; font-weight: 700;">
+                ● ₹10 INR Paid · Razorpay Verified
+              </div>
+            </td>
+          </tr>
+
+          <!-- R_ID BADGE -->
+          <tr>
+            <td style="padding: 20px 32px 10px 32px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0E0C13; border: 1px solid #FF1744; border-radius: 8px; text-align: center;">
+                <tr>
+                  <td style="padding: 14px 18px;">
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #9CA3AF; text-transform: uppercase;">
+                      OFFICIAL REGISTRATION ID (R_ID)
+                    </div>
+                    <div style="margin-top: 4px; font-size: 26px; font-weight: 900; letter-spacing: 2px; color: #FF1744; font-family: monospace;">
+                      ${data.playerId}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- TEAM DETAILS TABLE -->
+          <tr>
+            <td style="padding: 10px 32px 20px 32px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0E0C13; border: 1px solid #272033; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #272033;">
+                    <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #E5E7EB; text-transform: uppercase;">
+                      TEAM INFORMATION
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 18px 16px 18px;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF; width: 38%;">Team Name:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF; font-weight: 700;">${data.teamName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Leader Name:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF; font-weight: 600;">${data.leaderName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Leader Email:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #00E5FF;"><a href="mailto:${data.email}" style="color: #00E5FF; text-decoration: none;">${data.email}</a></td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Phone:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;"><a href="tel:${data.phone}" style="color: #FFFFFF; text-decoration: none;">${data.phone}</a></td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">College / Org:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">${data.college || "Not specified"}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Team Size:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">${data.teamSize} Member${data.teamSize > 1 ? "s" : ""}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Additional Members:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">${memberNames.join(", ") || "None (Solo)"}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 5px 0; font-size: 12px; color: #9CA3AF;">Preferred Domain:</td>
+                        <td style="padding: 5px 0; font-size: 12px; color: #FFFFFF;">${data.preferredDomain || "Open Innovation"}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- PRESENTATION SUBMISSION CARD -->
+          <tr>
+            <td style="padding: 0 32px 20px 32px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0E0C13; border: 1px solid #272033; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #272033;">
+                    <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #00E5FF; text-transform: uppercase;">
+                      GOOGLE DRIVE PRESENTATION SUBMISSION
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px 18px 18px;">
+                    ${
+                      presentationLink
+                        ? `<p style="margin: 0 0 12px 0; font-size: 12px; color: #E5E7EB; word-break: break-all;">
+                            <strong>Direct Link:</strong> <a href="${presentationLink}" target="_blank" style="color: #00E5FF; text-decoration: underline;">${presentationLink}</a>
+                          </p>
+                          <a href="${presentationLink}" target="_blank" style="display: inline-block; background-color: #FF1744; color: #FFFFFF; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; padding: 10px 20px; border-radius: 6px;">
+                            OPEN GOOGLE DRIVE PRESENTATION &rarr;
+                          </a>`
+                        : `<p style="margin: 0; font-size: 12px; color: #9CA3AF;">No presentation URL provided.</p>`
+                    }
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- PAYMENT AUDIT -->
+          <tr>
+            <td style="padding: 0 32px 24px 32px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0E0C13; border: 1px solid #10B981; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 12px 18px;">
+                    <span style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #10B981; text-transform: uppercase;">
+                      RAZORPAY PAYMENT AUDIT
+                    </span>
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 8px;">
+                      <tr>
+                        <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF; width: 38%;">Amount:</td>
+                        <td style="padding: 4px 0; font-size: 11px; color: #FFFFFF; font-weight: 700;">₹10.00 INR (1000 paise)</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF;">Order ID:</td>
+                        <td style="padding: 4px 0; font-size: 11px; color: #FFFFFF; font-family: monospace;">${data.orderId || "N/A"}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF;">Payment ID:</td>
+                        <td style="padding: 4px 0; font-size: 11px; color: #FFFFFF; font-family: monospace;">${data.paymentId || "N/A"}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF;">Captured At:</td>
+                        <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF;">${new Date().toISOString()}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #100D16; border-top: 1px solid #272033; text-align: center; font-size: 11px; color: #6B7280;">
+              APEX 1.0 Automated Admin Notification System · <a href="https://apexhack.online/admin" style="color: #FF1744; text-decoration: none;">Admin Dashboard</a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `==================================================
+APEX 1.0 — NEW REGISTRATION ADMIN NOTIFICATION
+==================================================
+Team Name       : ${data.teamName}
+Registration ID : ${data.playerId}
+Leader Name     : ${data.leaderName}
+Email           : ${data.email}
+Phone           : ${data.phone}
+College         : ${data.college || "N/A"}
+Team Size       : ${data.teamSize}
+Members         : ${memberNames.join(", ") || "None (Solo)"}
+Domain          : ${data.preferredDomain || "Open Innovation"}
+
+GOOGLE DRIVE LINK:
+${presentationLink || "No link provided"}
+
+PAYMENT DETAILS:
+Amount          : ₹10 INR (1000 paise)
+Payment Status  : PAID & CAPTURED
+Razorpay Order  : ${data.orderId || "N/A"}
+Razorpay Payment: ${data.paymentId || "N/A"}
+Verified At     : ${new Date().toISOString()}
+
+==================================================
+APEX 1.0 Administration Team
+https://apexhack.online/admin
 ==================================================`;
 
   return { subject, html, text };
