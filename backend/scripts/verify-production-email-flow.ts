@@ -65,7 +65,14 @@ async function runEmailProductionSuite() {
   };
 
   const participantEmail = generateRegistrationConfirmationEmail(sampleData);
-  assert(participantEmail.subject.includes("APEX-TESTPROD2026"), "Participant subject contains R_ID");
+  assert(
+    participantEmail.subject === "APEX 1.0 | You're Officially Registered!",
+    "Participant subject matches 'APEX 1.0 | You're Officially Registered!'",
+  );
+  assert(
+    participantEmail.html.includes("Your registration is confirmed. Your unique Team ID and payment details are inside."),
+    "Participant HTML contains approved preview text",
+  );
   assert(participantEmail.html.includes("₹10"), "Participant HTML confirms ₹10 payment");
   assert(participantEmail.html.includes("https://drive.google.com/file/d/test1234/view"), "Participant HTML contains Drive Link");
   assert(participantEmail.text.includes("OFFICIAL REGISTRATION ID"), "Participant plain-text fallback valid");
