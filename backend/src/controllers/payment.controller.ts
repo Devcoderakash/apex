@@ -88,7 +88,7 @@ export const registrationPayloadSchema = z
 
 /**
  * POST /api/registrations/create-order, POST /api/create-order
- * Validates payload and creates Razorpay Order for ₹199 (19900 paise).
+ * Validates payload and creates Razorpay Order for ₹10 (1000 paise).
  * Binds checkout payload securely on server without inserting confirmed DB rows!
  */
 export async function createOrder(req: Request, res: Response) {
@@ -163,7 +163,7 @@ export async function createOrder(req: Request, res: Response) {
 /**
  * POST /api/registrations/verify-payment, POST /api/verify-payment
  * 1. Cryptographically verifies HMAC-SHA256 signature.
- * 2. Fetches payment from Razorpay API to confirm captured status and ₹199 amount.
+ * 2. Fetches payment from Razorpay API to confirm captured status and ₹10 amount.
  * 3. Retrieves bound checkout payload.
  * 4. Atomically creates confirmed registration in public.apex_registrations.
  * 5. Returns unique R_ID (APEX-XXXXXXXXXXXXXXX).
@@ -302,6 +302,7 @@ export async function verifyPayment(req: Request, res: Response) {
       razorpay_order_id: orderId,
       razorpay_payment_id: paymentId,
       razorpay_signature: signature,
+      amount_paid: paymentDetails?.amount || REGISTRATION_FEE_PAISE,
       team_name: teamName,
       team_leader_name: leaderName,
       email,
@@ -333,7 +334,7 @@ export async function verifyPayment(req: Request, res: Response) {
       teamName: registration.team_name,
       team_leader_name: registration.team_leader_name,
       leaderName: registration.team_leader_name,
-      amount_paid: REGISTRATION_FEE_PAISE,
+      amount_paid: registration.amount_paid || REGISTRATION_FEE_PAISE,
       registration_status: "confirmed",
       order_id: orderId,
       alreadyProcessed: isExisting,
@@ -420,6 +421,7 @@ export async function handleWebhook(req: Request, res: Response) {
         await registerPaidTeam({
           razorpay_order_id: orderId,
           razorpay_payment_id: paymentId,
+          amount_paid: paymentEntity?.amount || REGISTRATION_FEE_PAISE,
           team_name: pending?.team_name || notes.team_name || "Team APEX",
           team_leader_name: pending?.team_leader_name || notes.leader_name || "Team Leader",
           email: pending?.email || notes.email || paymentEntity.email || "",

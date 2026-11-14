@@ -22,7 +22,7 @@ const docs = {
 | **Organizer** | The Innovation League, Bhopal |
 | **Official Website** | https://apexhack.online |
 | **Official Contact** | support@apexhack.online |
-| **Entry Fee** | ₹199 per team (Round 1 Review) |
+| **Entry Fee** | ₹10 per team (Round 1 Review) |
 | **Total Prize Pool** | ₹30,000 INR |
 | **First Prize** | ₹15,000 INR |
 | **Second Prize** | ₹10,000 INR |
@@ -49,7 +49,7 @@ const docs = {
 ## 4. End-to-End Participant Journey
 1. **Discovery & Exploration:** Users land on \`apexhack.online\` with full access to rules, timelines, prize distributions, and FAQs.
 2. **Team Registration:** Teams (1–4 members) designate a single leader, input contact and college information, provide project briefs, and upload PPT/PDF pitch decks (max 20MB) to Supabase Cloud Storage.
-3. **Decoupled Consent & Payment:** Teams acknowledge official Terms and Privacy Policy (mandatory service processing) and choose whether to opt in to promotional channels. They complete ₹199 registration via Razorpay Standard Checkout (UPI, Cards, NetBanking).
+3. **Decoupled Consent & Payment:** Teams acknowledge official Terms and Privacy Policy (mandatory service processing) and choose whether to opt in to promotional channels. They complete ₹10 registration via Razorpay Standard Checkout (UPI, Cards, NetBanking).
 4. **Instant Pass & Email:** Successful transactions trigger automated confirmation emails with player ID (\`APEX-XXXX\`) and digital registration pass.
 5. **Shortlisting & Finale:** Shortlisted teams pitch physically in Bhopal on 10 December 2026 for ₹30,000 in cash prizes.
 `,
@@ -63,7 +63,7 @@ All features across frontend, backend, database, and integrations have been cata
 | **FEAT-01** | Landing & Hero Section | Frontend | Interactive UI with countdown timer, glitch typography, and registration CTA | Fully Completed | \`src/routes/index.tsx\` |
 | **FEAT-02** | Registration & Team Entry | Full-Stack | 1–4 member team registration with dynamic slots and input validation | Fully Completed | \`src/routes/register.tsx\` |
 | **FEAT-03** | Presentation File Upload | Full-Stack | PPT/PDF upload to Supabase Storage (\`apex-presentations\`) with 20MB cap | Fully Completed | \`uploadPptFile()\` |
-| **FEAT-04** | Razorpay Live Checkout | Full-Stack | Server-side order creation (₹199) and client-side Razorpay standard modal | Fully Completed | Verified live: \`order_TviaZ0YMzSZmgh\` |
+| **FEAT-04** | Razorpay Live Checkout | Full-Stack | Server-side order creation (₹10) and client-side Razorpay standard modal | Fully Completed | Verified live: \`order_TviaZ0YMzSZmgh\` |
 | **FEAT-05** | HMAC Signature Verification | Backend | Timing-safe verification using \`crypto.timingSafeEqual\` | Fully Completed | \`backend/src/services/razorpay.service.ts\` |
 | **FEAT-06** | Digital Pass & Success Route | Frontend | Displays confirmed team pass, QR code payload, and payment receipt | Fully Completed | \`src/routes/success.tsx\` |
 | **FEAT-07** | Automated Email Dispatch | Backend | Nodemailer / Resend confirmation pipeline with database audit logging | Fully Completed | \`backend/src/services/email.service.ts\` |
@@ -93,7 +93,7 @@ flowchart TD
     Client -->|HTTPS / Static Assets| Vercel
     Client -->|Upload File <= 20MB| SupabaseStore
     Client -->|API /create-order| Backend
-    Backend -->|Create Order ₹199| RazorpayAPI
+    Backend -->|Create Order ₹10| RazorpayAPI
     Client -->|Checkout Modal| RazorpayAPI
     Client -->|Verify Signature| Backend
     Backend -->|Verify HMAC-SHA256| Backend
@@ -216,7 +216,7 @@ APEX 1.0 is organized and administered exclusively by **The Innovation League, B
 - The designated Team Leader serves as the primary point of contact for all administrative communications.
 
 ## 4. Registration Fees & Payment Policy
-- Registration fee is **₹199 per team** for the Round 1 Online Submission.
+- Registration fee is **₹10 per team** for the Round 1 Online Submission.
 - Payments must be completed through the integrated Razorpay payment gateway on \`apexhack.online\`.
 - Registration is confirmed only upon successful payment verification and issuance of a valid Player ID (\`APEX-XXXX\`).
 
@@ -337,7 +337,7 @@ Under Section 6 of the DPDP Act 2023, consent must be **free, specific, informed
 
 | Endpoint | Method | Auth Guard | Validation | Rate Limiting | Status |
 |---|---|---|---|---|---|
-| \`/api/create-order\` | POST | Public | Zod Schema | Express Parser | Verified (₹199 fixed server-side) |
+| \`/api/create-order\` | POST | Public | Zod Schema | Express Parser | Verified (₹10 fixed server-side) |
 | \`/api/verify-payment\` | POST | Public | Zod Schema | Timing-Safe HMAC | Verified (SHA256 signature) |
 | \`/api/upload/presentation\` | POST | Public | Multer + Ext Check | 20MB ceiling | Verified (Supabase Cloud Storage) |
 | \`/api/grievance\` | POST | Public | Zod Schema | Body sanitization | Verified (\`GRV-XXXX\` generated) |
@@ -350,7 +350,7 @@ Under Section 6 of the DPDP Act 2023, consent must be **free, specific, informed
 ## Threat Protection Summary
 - **Input Sanitization:** URL schemes restricted against \`javascript:\` and \`data:\` attacks.
 - **Timing Attacks:** Admin key and HMAC signature verification use \`crypto.timingSafeEqual\` to prevent side-channel leaks.
-- **Price Tampering:** Order amounts are hardcoded server-side (\`REGISTRATION_FEE_PAISE = 19900\`); client amounts are completely ignored.
+- **Price Tampering:** Order amounts are hardcoded server-side (\`REGISTRATION_FEE_PAISE = 1000\`); client amounts are completely ignored.
 `,
 
   "PAYMENT_SECURITY_REPORT.md": `# Payment Security & Razorpay Integration Report
@@ -358,7 +358,7 @@ Under Section 6 of the DPDP Act 2023, consent must be **free, specific, informed
 ## Payment Parameters
 - **Gateway:** Razorpay Standard Checkout
 - **Currency:** INR
-- **Fixed Fee:** ₹199 (19900 paise)
+- **Fixed Fee:** ₹10 (1000 paise)
 - **Mode:** LIVE (\`rzp_live_TvchK8AZD6BwEb\`)
 
 ## Cryptographic Signature Verification
@@ -423,7 +423,7 @@ Only upon positive verification is the team marked as \`paid\` in Supabase.
 ## Test Executions
 
 ### 1. Razorpay Order Creation & Live Mode
-- **Test:** Server-to-server order generation with ₹199 fee.
+- **Test:** Server-to-server order generation with ₹10 fee.
 - **Result:** PASSED. Generated order \`order_TviaZ0YMzSZmgh\` verified directly on Razorpay live servers.
 
 ### 2. Timing-Safe Signature Verification
@@ -463,7 +463,7 @@ Only upon positive verification is the team marked as \`paid\` in Supabase.
 - [x] Official Event Dates aligned across all pages (25 Nov, 30 Nov, 10 Dec 2026).
 - [x] Official Organizer identity set to "The Innovation League, Bhopal".
 - [x] Prize pool confirmed at ₹30,000 (1st: ₹15,000, 2nd: ₹10,000, 3rd: ₹5,000).
-- [x] Registration fee fixed at ₹199 per team.
+- [x] Registration fee fixed at ₹10 per team.
 - [x] Live Razorpay credentials verified and active.
 - [x] Presentation upload system configured for 20MB PPT/PDF with Supabase Storage.
 - [x] DPDP Act 2023 compliance pages deployed (Rules, Terms, Privacy, Cookies, Grievance, Privacy Requests, Refunds).

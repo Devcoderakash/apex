@@ -135,7 +135,7 @@ async function runTests() {
   });
   const orderData = await validRegRes.json();
   assert(validRegRes.status === 200 && orderData.orderId, "Order created with orderId: " + orderData.orderId);
-  assert(orderData.amount === 19900 && orderData.amountInRupees === 199, "Registration fee strictly calculated server-side: ₹199");
+  assert(orderData.amount === 1000 && orderData.amountInRupees === 10, "Registration fee strictly calculated server-side: ₹10");
   assert(orderData.playerId && orderData.playerId.startsWith("APEX-"), "Player reference generated: " + orderData.playerId);
 
   // 12. Check registration status endpoint

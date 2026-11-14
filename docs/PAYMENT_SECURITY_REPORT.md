@@ -3,7 +3,7 @@
 ## Payment Parameters
 - **Gateway:** Razorpay Standard Checkout
 - **Currency:** INR
-- **Fixed Fee:** ₹199 (19900 paise)
+- **Fixed Fee:** ₹10 (1000 paise)
 - **Mode:** LIVE (`rzp_live_TvchK8AZD6BwEb`)
 
 ## Cryptographic Signature Verification

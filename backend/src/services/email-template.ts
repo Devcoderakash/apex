@@ -55,8 +55,9 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
     data.paymentStatus === "paid" ||
     data.paymentStatus === "confirmed" ||
     Boolean(data.paymentId);
+  const paidAmount = data.paymentAmount ? Number(data.paymentAmount) : 10;
   const paymentDisplay = isPaid
-    ? "Paid (₹199) · Razorpay Verified"
+    ? `Paid (₹${paidAmount}) · Razorpay Verified`
     : "Fee Cleared / Confirmed";
 
   const html = `<!DOCTYPE html>

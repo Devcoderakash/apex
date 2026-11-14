@@ -39,13 +39,14 @@ async function runTests() {
     pptFileName: "cyber_sentinels_apex.pdf",
     pptStoragePath: "submissions/1791965_cyber_sentinels_apex.pdf",
     paymentStatus: "paid",
-    paymentAmount: 199,
+    paymentAmount: 10,
     paymentId: "pay_test_apex_12345",
   };
 
   const { subject, html, text } = generateRegistrationConfirmationEmail(testData);
 
   assert(subject === "Registration Confirmed — APEX//1.0 | APEX-9999", "Subject matches required specification");
+  assert(html.includes("Paid (₹10) · Razorpay Verified"), "HTML displays ₹10 verified payment");
   assert(html.includes("APEX//1.0"), "HTML includes APEX//1.0 branding");
   assert(html.includes("STUDENT HACKATHON · BHOPAL"), "HTML includes header subtitle");
   assert(html.includes("REGISTRATION SUCCESSFUL"), "HTML includes success banner");

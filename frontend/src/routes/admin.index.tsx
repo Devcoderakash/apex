@@ -106,7 +106,12 @@ function Overview() {
   const stats = [
     { label: "TOTAL REGISTRATIONS", value: rows.length },
     { label: "PAID TEAMS", value: rows.filter((r) => r.payment_status === "paid").length },
-    { label: "TOTAL REVENUE", value: `₹${rows.filter((r) => r.payment_status === "paid").reduce((a, r) => a + (r.payment_amount ?? 15000) / 100, 0)}` },
+    {
+      label: "TOTAL REVENUE",
+      value: `₹${rows
+        .filter((r) => r.payment_status === "paid")
+        .reduce((a, r) => a + (r.amount_paid ? r.amount_paid / 100 : (r.payment_amount ? (r.payment_amount > 1000 ? r.payment_amount / 100 : r.payment_amount) : 10)), 0)}`,
+    },
     { label: "APPROVED TEAMS", value: rows.filter((r) => r.status === "approved").length },
     { label: "TOTAL PARTICIPANTS", value: rows.reduce((a, r) => a + (r.team_size ?? 0), 0) },
   ];

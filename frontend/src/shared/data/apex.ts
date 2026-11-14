@@ -82,7 +82,7 @@ export const ROADMAP = [
     n: 1,
     title: "REGISTRATION",
     window: "OPEN NOW",
-    text: "Teams register for APEX 1.0 (1–4 members per team) and pay the ₹199 entry fee.",
+    text: "Teams register for APEX 1.0 (1–4 members per team) and pay the ₹10 entry fee.",
     active: true,
   },
   {
@@ -139,7 +139,7 @@ export const RULES = [
   { n: "01", title: "ORGANIZER", text: "APEX 1.0 is organized by The Innovation League, Bhopal. Official website: https://apexhack.online." },
   { n: "02", title: "TEAM SIZE", text: "Teams must consist of 1–4 members. Every team must designate exactly one team leader. One participant cannot belong to multiple teams." },
   { n: "03", title: "IMPORTANT DATES", text: "Online Submission Round: 25 November 2026. Shortlist Announcement: 30 November 2026. Grand Finale: 10 December 2026." },
-  { n: "04", title: "REGISTRATION FEE", text: "Round 1 registration fee is ₹199 per team. Registration is complete only after successful payment and submission of required details." },
+  { n: "04", title: "REGISTRATION FEE", text: "Round 1 registration fee is ₹10 per team. Registration is complete only after successful payment and submission of required details." },
   { n: "05", title: "SUBMISSION GUIDELINES", text: "Accepted formats: PPT and PDF (max 20 MB). Projects must be original, explaining problem, solution, tech stack, implementation, and potential impact." },
   { n: "06", title: "GRAND FINALE", text: "The Grand Finale will take place on 10 December 2026 in Bhopal, Madhya Pradesh. Physical participation is expected. Online presentation may be requested with prior organizer approval." },
   { n: "07", title: "TECHNOLOGY & TOOLS", text: "Teams may use any programming language, framework, or platform. AI tools are allowed provided participants understand and explain their solution." },
@@ -150,7 +150,7 @@ export const EVENT_DETAILS = {
   name: "APEX 1.0 National Hackathon",
   organizer: "The Innovation League, Bhopal",
   website: "https://apexhack.online",
-  registrationFee: 199,
+  registrationFee: 10,
   currency: "INR",
   dates: {
     onlineSubmission: "25 November 2026",
@@ -213,7 +213,7 @@ export const FAQS = [
   },
   {
     q: "What is the registration fee?",
-    a: "The registration fee is ₹199 per team. Registration is confirmed only upon successful payment and submission of required team and project details.",
+    a: "The registration fee is ₹10 per team. Registration is confirmed only upon successful payment and submission of required team and project details.",
   },
   {
     q: "What formats are accepted for submission?",

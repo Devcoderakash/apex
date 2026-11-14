@@ -57,7 +57,7 @@ Overall Security Grade: C+ (Moderate Risk)
 
 ### A04: Insecure Design — PARTIALLY PASSED (Medium Risk)
 1. **Authoritative Server Pricing:**
-   - The registration fee (₹199 / 19900 paise) is enforced strictly on the server in `createOrder` ([`payment.controller.ts:123`](file:///Users/akashlodhi/Desktop/Hack_website/backend/src/controllers/payment.controller.ts#L123)), eliminating client-side price tampering.
+   - The registration fee (₹10 / 1000 paise) is enforced strictly on the server in `createOrder` ([`payment.controller.ts:123`](file:///Users/akashlodhi/Desktop/Hack_website/backend/src/controllers/payment.controller.ts#L123)), eliminating client-side price tampering.
 2. **Missing Participant Authentication:**
    - Once registered, participants only have `/success?pid=...` to reference their confirmation. If they lose their link or browser tab, they have no login mechanism to retrieve their pass or update their submitted idea deck.
 

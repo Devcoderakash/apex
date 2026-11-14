@@ -69,7 +69,7 @@ const TERMS_SECTIONS = [
     code: "TERMS_03",
     title: "3. Registration and Fees",
     clauses: [
-      "The registration fee for Round 1 (Online Submission Round) is fixed at ₹199 per team.",
+      "The registration fee for Round 1 (Online Submission Round) is fixed at ₹10 per team.",
       "Registration is complete only upon successful online payment through our authorized payment gateway (Razorpay) and complete submission of required registration details.",
       "Upon payment confirmation, teams receive an official Player ID (e.g., APEX-1001) which must be quoted in all correspondence.",
     ],

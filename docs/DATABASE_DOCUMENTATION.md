@@ -34,7 +34,7 @@ erDiagram
         text payment_status "pending, paid, failed"
         text payment_id "Razorpay payment id"
         text razorpay_order_id "Razorpay order id"
-        integer payment_amount "Amount in INR (199)"
+        integer payment_amount "Amount in INR (10)"
         timestamptz paid_at "Payment confirmation timestamp"
         timestamptz created_at "Registration time"
         timestamptz updated_at "Auto-updated via trigger"

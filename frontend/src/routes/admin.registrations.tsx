@@ -245,6 +245,11 @@ function Registrations() {
             if (h === "team_leader_name") val = r.team_leader_name || r.leader_name;
             if (h === "college_organization") val = r.college_organization || r.college;
             if (h === "review_status") val = r.review_status || (r.status === "approved" ? "shortlisted" : r.status);
+            if (h === "payment_amount") {
+              val = (r as any).payment_amount !== undefined
+                ? (r as any).payment_amount
+                : ((r as any).amount_paid ? (r as any).amount_paid / 100 : 10);
+            }
             if (h === "idea_drive_link") val = r.idea_drive_link || r.ppt_url;
             return `"${String(val ?? "").replace(/"/g, '""')}"`;
           })
@@ -394,7 +399,12 @@ function Registrations() {
                       />
                     </td>
                     <td className="py-3 pr-4">
-                      <StatusChip status={(t.payment_status as any) || "paid"} />
+                      <div className="flex flex-col gap-1 items-start">
+                        <StatusChip status={(t.payment_status as any) || "paid"} />
+                        <span className="font-mono text-[0.65rem] text-muted-foreground">
+                          ₹{t.payment_amount !== undefined ? t.payment_amount : ((t as any).amount_paid ? (t as any).amount_paid / 100 : 10)}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3 pr-4">
                       {driveLink ? (

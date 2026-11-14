@@ -16,7 +16,7 @@ import {
   EmailRegistrationData,
   generateRegistrationConfirmationEmail,
 } from "./email-template.js";
-import { getTeamByOrderId } from "./registration.service.js";
+import { getTeamByOrderId, REGISTRATION_FEE_INR } from "./registration.service.js";
 
 export interface SendEmailResult {
   success: boolean;
@@ -111,7 +111,11 @@ export async function sendRegistrationConfirmationEmail(
   // 3. Prepare email data
   const rawLeader = (team as any).team_leader_name || (team as any).leader_name || "Team Leader";
   const rawCollege = (team as any).college_organization || (team as any).college || "";
-  const rawAmount = (team as any).amount_paid ? (team as any).amount_paid / 100 : ((team as any).payment_amount || 199);
+  const rawAmount = (team as any).amount_paid
+    ? (team as any).amount_paid / 100
+    : (team as any).payment_amount
+      ? ((team as any).payment_amount > 1000 ? (team as any).payment_amount / 100 : (team as any).payment_amount)
+      : REGISTRATION_FEE_INR;
   const rawPaymentId = (team as any).razorpay_payment_id || (team as any).payment_id || "";
   const rawDriveLink = (team as any).idea_drive_link || (team as any).ppt_url || "";
   const rawAdditional: any[] = Array.isArray((team as any).additional_members)

@@ -206,7 +206,7 @@ const registered = await registerPaidTeam({
 assert(Boolean(registered?.registration), "Registration completed and returned record");
 assert(registered.registration.r_id.startsWith("APEX-"), `Valid R_ID generated: ${registered.registration.r_id}`);
 assert(registered.registration.payment_status === "paid", "Payment status is marked 'paid'");
-assert(registered.registration.amount_paid === REGISTRATION_FEE_PAISE, "Amount paid is 19900 paise (₹199)");
+assert(registered.registration.amount_paid === REGISTRATION_FEE_PAISE, "Amount paid is 1000 paise (₹10)");
 assert(registered.registration.currency === "INR", "Currency is INR");
 assert(registered.registration.idea_drive_link === validDriveUrl, "Exact Google Drive link saved in idea_drive_link");
 assert(registered.registration.additional_members.length === 2, "2 additional members saved in JSONB array");

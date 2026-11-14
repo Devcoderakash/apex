@@ -48,7 +48,7 @@ function RefundsPage() {
                 </div>
               </div>
               <p className="mt-4 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                The Round 1 registration fee of <strong>₹199 per team</strong> is <strong>strictly non-refundable</strong> once payment has been verified and an official Player ID (<code className="text-primary font-mono">APEX-XXXX</code>) has been issued. Operational screening slots, evaluation bandwidth, and cloud server storage are immediately committed upon payment confirmation.
+                The Round 1 registration fee of <strong>₹10 per team</strong> is <strong>strictly non-refundable</strong> once payment has been verified and an official Player ID (<code className="text-primary font-mono">APEX-XXXX</code>) has been issued. Operational screening slots, evaluation bandwidth, and cloud server storage are immediately committed upon payment confirmation.
               </p>
             </div>
 

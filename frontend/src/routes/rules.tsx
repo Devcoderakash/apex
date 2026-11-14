@@ -82,7 +82,7 @@ const RULES_SECTIONS = [
     title: "4. Registration",
     points: [
       "Registration must be completed through https://apexhack.online/register.",
-      "The registration fee is fixed at ₹199 per team for Round 1.",
+      "The registration fee is fixed at ₹10 per team for Round 1.",
       "Registration is complete and valid ONLY after successful online payment via Razorpay and submission of required team and project details.",
       "Each team receives an official sequential Player ID (e.g., APEX-1001) upon confirmed payment.",
     ],

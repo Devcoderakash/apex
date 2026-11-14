@@ -66,7 +66,7 @@ This document provides a comprehensive inventory of all features currently disco
 - **Working Status:** **Operational (100%)**.
 
 #### 8. Razorpay Live Order Creation (`/api/create-order`)
-- **Purpose:** Server-side creation of Razorpay payment orders for ₹199 (19900 paise). Prevents client-side price tampering.
+- **Purpose:** Server-side creation of Razorpay payment orders for ₹10 (1000 paise). Prevents client-side price tampering.
 - **Access:** Backend API called by registration flow.
 - **Backend:** [`backend/src/controllers/payment.controller.ts`](file:///Users/akashlodhi/Desktop/Hack_website/backend/src/controllers/payment.controller.ts), [`backend/src/services/razorpay.service.ts`](file:///Users/akashlodhi/Desktop/Hack_website/backend/src/services/razorpay.service.ts).
 - **Working Status:** **Operational (100%)** — Verified in Razorpay Live Mode with key `rzp_live_TvchK8AZD6BwEb`.

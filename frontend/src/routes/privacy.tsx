@@ -70,7 +70,7 @@ const PRIVACY_SECTIONS = [
     code: "PRIVACY_03",
     title: "3. Payment Processing",
     clauses: [
-      "Registration payments (₹199 per team) are processed securely via Razorpay Software Private Limited, an authorized Payment Aggregator regulated by the Reserve Bank of India (RBI).",
+      "Registration payments (₹10 per team) are processed securely via Razorpay Software Private Limited, an authorized Payment Aggregator regulated by the Reserve Bank of India (RBI).",
       "APEX 1.0 does NOT store, collect, or process full credit/debit card numbers, CVVs, net-banking passwords, or UPI MPINs on our servers.",
       "Payment integrity is guaranteed using server-side HMAC-SHA256 signature verification over Razorpay orders.",
       "We retain only transaction references (order ID, payment ID, timestamp, and verification status) for accounting, taxation, and refund audits.",

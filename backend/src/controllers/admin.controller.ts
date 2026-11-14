@@ -8,6 +8,8 @@ import {
   getRegistrationById,
   updateRegistrationReview,
   updateStoredTeam,
+  REGISTRATION_FEE_INR,
+  REGISTRATION_FEE_PAISE,
   type ApexRegistrationRecord,
 } from "../services/registration.service.js";
 import { sendRegistrationConfirmationEmail } from "../services/email.service.js";
@@ -61,8 +63,17 @@ function normalizeRegistrationRow(row: any) {
     payment_status: row.payment_status || "paid",
     payment_id: row.razorpay_payment_id || row.payment_id || null,
     payment_order_id: row.razorpay_order_id || row.payment_order_id || null,
-    payment_amount: row.amount_paid ? row.amount_paid / 100 : (row.payment_amount || 199),
-    amount_paid: row.amount_paid || 19900,
+    payment_amount: row.amount_paid
+      ? row.amount_paid / 100
+      : row.payment_amount
+        ? (row.payment_amount > 1000 ? row.payment_amount / 100 : row.payment_amount)
+        : REGISTRATION_FEE_INR,
+    amount_paid:
+      row.amount_paid !== undefined && row.amount_paid !== null
+        ? row.amount_paid
+        : row.payment_amount
+          ? (row.payment_amount < 100 ? row.payment_amount * 100 : row.payment_amount)
+          : REGISTRATION_FEE_PAISE,
     currency: row.currency || "INR",
     payment_verified_at: row.payment_verified_at || row.paid_at || null,
     created_at: row.created_at || new Date().toISOString(),

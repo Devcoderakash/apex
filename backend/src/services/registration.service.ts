@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import { supabase } from "./supabase.service.js";
 
-export const REGISTRATION_FEE_INR = 199;
-export const REGISTRATION_FEE_PAISE = REGISTRATION_FEE_INR * 100; // 19900 paise
+export const REGISTRATION_FEE_INR = 10;
+export const REGISTRATION_FEE_PAISE = REGISTRATION_FEE_INR * 100; // 1000 paise
 
 export interface ApexRegistrationRecord {
   id: string;
@@ -62,6 +62,7 @@ export interface RegisterPaidTeamInput {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature?: string;
+  amount_paid?: number;
   team_name: string;
   team_leader_name?: string;
   leader_name?: string;
@@ -222,7 +223,7 @@ export async function registerPaidTeam(
     razorpay_order_id: orderId,
     razorpay_payment_id: paymentId,
     payment_status: "paid",
-    amount_paid: REGISTRATION_FEE_PAISE,
+    amount_paid: input.amount_paid || REGISTRATION_FEE_PAISE,
     currency: "INR",
     payment_verified_at: now,
     registration_status: "confirmed",
@@ -356,7 +357,12 @@ function formatRecord(row: any): ApexRegistrationRecord {
     razorpay_order_id: row.razorpay_order_id || null,
     razorpay_payment_id: row.razorpay_payment_id || row.payment_id || null,
     payment_status: row.payment_status || "pending",
-    amount_paid: row.amount_paid || row.payment_amount || 19900,
+    amount_paid:
+      row.amount_paid !== undefined && row.amount_paid !== null
+        ? row.amount_paid
+        : row.payment_amount
+          ? (row.payment_amount < 100 ? row.payment_amount * 100 : row.payment_amount)
+          : REGISTRATION_FEE_PAISE,
     currency: row.currency || row.payment_currency || "INR",
     payment_verified_at: row.payment_verified_at || row.paid_at || null,
     registration_status: row.registration_status || "pending",

@@ -7,7 +7,7 @@ The application streamlines the entire pre-event lifecycle:
 - Public-facing marketing, event roadmaps, rules, judging rubrics, prize structures, and FAQs.
 - Multi-member team registration (1 to 4 participants).
 - Online presentation/pitch deck upload (PDF, PPT, PPTX) up to 20MB directly into cloud object storage.
-- Integrated fee collection (₹199 per team for Round 1 screening) via **Razorpay Standard Checkout** with UPI, QR, Card, and NetBanking support.
+- Integrated fee collection (₹10 per team for Round 1 screening) via **Razorpay Standard Checkout** with UPI, QR, Card, and NetBanking support.
 - Cryptographic payment verification (HMAC-SHA256) and automated digital team pass generation (`APEX-XXXX`).
 - Automated confirmation email dispatch.
 - Organizer admin dashboard for reviewing submissions, inspecting presentations via signed URLs, updating team qualification statuses, and tracking registration metrics.
@@ -68,7 +68,7 @@ journey
       Add Up to 3 Teammates: 4: Participant
       Upload Idea PPT/PDF: 5: Participant
     section Payment & Confirmation
-      Click Pay ₹199: 5: Participant
+      Click Pay ₹10: 5: Participant
       Razorpay Modal Opens: 5: Participant
       Scan UPI QR / Pay: 5: Participant
       HMAC Verified by Server: 5: System
@@ -82,7 +82,7 @@ journey
 ---
 
 ## 6. Business & Monetization Model
-1. **Entry Fee (Round 1 Online Screening):** ₹199 per team.
+1. **Entry Fee (Round 1 Online Screening):** ₹10 per team.
    - Purpose: Filters serious participants, covers payment gateway charges, infrastructure costs, and contributes to the prize pool.
 2. **Prize Pool Distribution (₹30,000 Total):**
    - 1st Place (Champion): ₹18,000

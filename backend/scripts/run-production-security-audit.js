@@ -219,8 +219,8 @@ recordTest("section3_razorpay", "Tampered signature rejected", sigTampered === f
 // 3. Amount and currency validation
 recordTest(
   "section3_razorpay",
-  "Server-side fixed fee enforcement: 19900 paise (₹199)",
-  REGISTRATION_FEE_PAISE === 19900 && REGISTRATION_FEE_INR === 199
+  "Server-side fixed fee enforcement: 1000 paise (₹10)",
+  REGISTRATION_FEE_PAISE === 1000 && REGISTRATION_FEE_INR === 10
 );
 
 // 4. Webhook signature validation

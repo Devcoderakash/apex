@@ -71,12 +71,14 @@ function SuccessPage() {
     team: string;
     leader: string;
     driveLink?: string;
+    amount?: number;
   } | null>(
     rawId
       ? {
           r_id: rawId,
           team: search.team || "Team",
           leader: search.leader || "Team Leader",
+          amount: 10,
         }
       : null,
   );
@@ -90,11 +92,17 @@ function SuccessPage() {
       getTeamByOrderId(search.order_id)
         .then((t) => {
           if (t && (t.r_id || t.player_id) && t.team_name) {
+            const calculatedAmount = t.amount_paid
+              ? Math.round(t.amount_paid / 100)
+              : t.payment_amount
+                ? (t.payment_amount > 1000 ? Math.round(t.payment_amount / 100) : t.payment_amount)
+                : 10;
             setTeamInfo({
               r_id: t.r_id || t.player_id,
               team: t.team_name,
               leader: t.team_leader_name || t.leader_name || search.leader || "Team Leader",
               driveLink: t.idea_drive_link,
+              amount: calculatedAmount,
             });
           }
         })
@@ -104,6 +112,7 @@ function SuccessPage() {
         r_id: rawId,
         team: search.team || "Team",
         leader: search.leader || "Team Leader",
+        amount: 10,
       });
     }
 
@@ -126,6 +135,7 @@ function SuccessPage() {
   const displayId = teamInfo?.r_id || rawId;
   const displayTeam = teamInfo?.team || search.team || "Team APEX";
   const displayLeader = teamInfo?.leader || search.leader || "Team Leader";
+  const displayAmount = teamInfo?.amount || 10;
 
   const handleCopyId = () => {
     if (!displayId) return;
@@ -256,7 +266,7 @@ function SuccessPage() {
 
             <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 sm:px-3 py-1 font-mono text-[0.6rem] sm:text-[0.65rem] tracking-[0.14em] sm:tracking-[0.16em] text-emerald-400 font-semibold">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              VERIFIED PAYMENT · ₹199 PAID
+              VERIFIED PAYMENT · ₹{displayAmount} PAID
             </div>
           </div>
 
@@ -340,7 +350,7 @@ function SuccessPage() {
                 <ShieldCheck className="h-4 w-4 text-emerald-400" />
               </div>
               <dd className="mt-2 font-display text-base sm:text-xl md:text-2xl font-bold text-emerald-400">
-                PAID (₹199)
+                PAID (₹{displayAmount})
               </dd>
               <p className="mt-1 font-mono text-[0.6rem] sm:text-[0.65rem] text-muted-foreground tracking-wider">
                 Razorpay Verified · Fee Cleared
