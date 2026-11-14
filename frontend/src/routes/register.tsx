@@ -240,6 +240,10 @@ function RegisterPage() {
     setSubmitting(true);
 
     try {
+      const additionalMemberNames = [values.member1, values.member2, values.member3, values.member4]
+        .map((m) => (m ?? "").trim())
+        .filter((m) => m.length > 1);
+
       const members = [values.member1, values.member2, values.member3, values.member4]
         .map((m, i) => ({ full_name: (m ?? "").trim(), position: i + 1 }))
         .filter((m) => m.full_name.length > 1);
@@ -254,6 +258,7 @@ function RegisterPage() {
         phone: values.phone,
         college: values.college,
         team_size: Number(values.team_size),
+        additional_members: additionalMemberNames,
         idea_drive_link: values.idea_drive_link,
         ppt_url: values.idea_drive_link,
         ...(values.preferred_domain !== undefined && { preferred_domain: values.preferred_domain }),
@@ -351,6 +356,7 @@ function RegisterPage() {
               phone: values.phone,
               college: values.college,
               team_size: Number(values.team_size),
+              additional_members: additionalMemberNames,
               idea_drive_link: values.idea_drive_link,
               ppt_url: values.idea_drive_link,
               preferred_domain: values.preferred_domain,

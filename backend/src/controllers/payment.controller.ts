@@ -48,7 +48,7 @@ export const registrationPayloadSchema = z
     college_organization: z.string().trim().min(2, "College/Organization is required").max(120).optional(),
     college: z.string().trim().min(2, "College/Organization is required").max(120).optional(),
     team_size: z.coerce.number().min(1, "Team size must be between 1 and 4").max(4, "Team size cannot exceed 4"),
-    additional_members: z.array(z.string().trim().min(1)).optional().default([]),
+    additional_members: z.array(z.string().trim().min(1)).optional(),
     members: z.array(z.object({ full_name: z.string().min(1), position: z.number().optional() })).optional(),
     idea_drive_link: driveLinkValidator.optional(),
     ppt_url: z.string().optional(),
@@ -309,7 +309,18 @@ export async function verifyPayment(req: Request, res: Response) {
       phone,
       college_organization: college,
       team_size: teamSize,
-      additional_members: pendingPayload?.additional_members || req.body.additional_members || req.body.members,
+      additional_members:
+        Array.isArray(pendingPayload?.additional_members) && pendingPayload.additional_members.length > 0
+          ? pendingPayload.additional_members
+          : Array.isArray(req.body.additional_members) && req.body.additional_members.length > 0
+          ? req.body.additional_members
+          : undefined,
+      members:
+        Array.isArray(pendingPayload?.members) && pendingPayload.members.length > 0
+          ? pendingPayload.members
+          : Array.isArray(req.body.members) && req.body.members.length > 0
+          ? req.body.members
+          : undefined,
       preferred_domain: pendingPayload?.preferred_domain || req.body.preferred_domain,
       github_url: pendingPayload?.github_url || req.body.github_url,
       linkedin_url: pendingPayload?.linkedin_url || req.body.linkedin_url,
@@ -429,6 +440,7 @@ export async function handleWebhook(req: Request, res: Response) {
           college_organization: pending?.college_organization || notes.college || "",
           team_size: Number(pending?.team_size || notes.team_size || 1),
           additional_members: pending?.additional_members,
+          members: pending?.members,
           idea_drive_link: pending?.idea_drive_link || notes.idea_drive_link || "",
           terms_accepted: true,
         });

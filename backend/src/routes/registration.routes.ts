@@ -1,9 +1,9 @@
 import { Router } from "express";
 import {
   createOrder,
+  getRegistration,
   getRegistrationStatus,
 } from "../controllers/payment.controller.js";
-import { getRegistration } from "../controllers/registration.controller.js";
 
 export const registrationRouter = Router();
 

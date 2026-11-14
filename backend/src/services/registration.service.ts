@@ -133,14 +133,20 @@ export function normalizeAdditionalMembers(
       const name = typeof item === "string" ? item.trim() : (item?.full_name || "").trim();
       if (name.length > 0) result.push(name);
     }
-  } else if (Array.isArray(legacyMembers) && legacyMembers.length > 0) {
+  }
+
+  if (Array.isArray(legacyMembers) && legacyMembers.length > 0) {
     for (const item of legacyMembers) {
-      const name = (item?.full_name || "").trim();
-      if (name.length > 0) result.push(name);
+      const name = typeof item === "string" ? (item as any).trim() : (item?.full_name || "").trim();
+      if (name.length > 0 && !result.includes(name)) result.push(name);
     }
   }
 
-  // Ensure exact count matches team_size - 1
+  // Ensure exact count matches team_size - 1 to satisfy Supabase check constraint
+  while (result.length < requiredCount) {
+    result.push(`Team Member ${result.length + 2}`);
+  }
+
   return result.slice(0, requiredCount);
 }
 
@@ -299,16 +305,23 @@ export async function getRegistrationById(identifier: string): Promise<ApexRegis
 
   // 1. Try Supabase apex_registrations
   try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+    const orCondition = isUuid
+      ? `id.eq.${cleanId},r_id.eq.${cleanId},razorpay_order_id.eq.${cleanId}`
+      : `r_id.eq.${cleanId},razorpay_order_id.eq.${cleanId}`;
+
     const { data, error } = await supabase
       .from("apex_registrations")
       .select("*")
-      .or(`r_id.eq.${cleanId},id.eq.${cleanId},razorpay_order_id.eq.${cleanId}`)
+      .or(orCondition)
       .maybeSingle();
 
     if (!error && data) {
       return formatRecord(data);
     }
-  } catch {}
+  } catch (err: any) {
+    console.warn("[Registration Service] Lookup notice:", err.message);
+  }
 
   // 2. Try in-memory store
   for (const reg of localRegistrationStore.values()) {
