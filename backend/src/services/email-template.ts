@@ -48,7 +48,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
   const hasPresentationLink = presentationLink.length > 0 && presentationLink.startsWith("http");
 
   // Format payment display
-  const paidAmount = data.paymentAmount ? Number(data.paymentAmount) : 10;
+  const paidAmount = data.paymentAmount ? Number(data.paymentAmount) : 199;
   const orderId = data.orderId || "Verified";
   const paymentId = data.paymentId || "Captured";
   const collegeDisplay = data.college && data.college.trim().length > 0 ? data.college.trim() : "Not Specified";
@@ -198,7 +198,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                 Hey ${data.leaderName},
               </p>
               <p style="margin: 0; font-size: 14px; line-height: 22px; color: #D1D5DB;">
-                Congratulations! Team <strong>${data.teamName}</strong> is officially entered into <strong>APEX 1.0 — One Idea. No Limits.</strong> Below is your official registration summary, verified ₹10 payment confirmation, and evaluation schedule.
+                Congratulations! Team <strong>${data.teamName}</strong> is officially entered into <strong>APEX 1.0 — One Idea. No Limits.</strong> Below is your official registration summary, verified ₹${paidAmount} payment confirmation, and evaluation schedule.
               </p>
             </td>
           </tr>
@@ -267,7 +267,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                 <tr>
                   <td style="padding: 14px 20px; background-color: #1D1A29; border-bottom: 1px solid #2A2438;">
                     <span style="font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #10B981; text-transform: uppercase;">
-                      &#128179; PAYMENT CONFIRMATION (₹10 PAID)
+                      &#128179; PAYMENT CONFIRMATION (₹${paidAmount} PAID)
                     </span>
                   </td>
                 </tr>
@@ -380,7 +380,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                           <div style="width: 22px; height: 22px; line-height: 22px; border-radius: 50%; background-color: rgba(255, 23, 68, 0.15); border: 1px solid #FF1744; color: #FF1744; font-size: 10px; font-weight: 900; text-align: center;">1</div>
                         </td>
                         <td style="padding-left: 10px;">
-                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Round 1 Online Evaluation (25 November 2026)</div>
+                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Round 1 Online Evaluation (20 December 2026)</div>
                           <div style="margin-top: 3px; font-size: 12px; color: #9CA3AF; line-height: 18px;">
                             The expert judging panel evaluates your submitted idea presentation on problem impact, technical feasibility, innovation, and scalability.
                           </div>
@@ -395,7 +395,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                           <div style="width: 22px; height: 22px; line-height: 22px; border-radius: 50%; background-color: rgba(0, 229, 255, 0.15); border: 1px solid #00E5FF; color: #00E5FF; font-size: 10px; font-weight: 900; text-align: center;">2</div>
                         </td>
                         <td style="padding-left: 10px;">
-                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Shortlist Announcement (30 November 2026)</div>
+                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Shortlist Announcement (TBA — After Round 1)</div>
                           <div style="margin-top: 3px; font-size: 12px; color: #9CA3AF; line-height: 18px;">
                             Qualifying teams will be officially published and notified via direct email invitation with comprehensive Grand Finale guidelines.
                           </div>
@@ -410,7 +410,7 @@ export function generateRegistrationConfirmationEmail(data: EmailRegistrationDat
                           <div style="width: 22px; height: 22px; line-height: 22px; border-radius: 50%; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 10px; font-weight: 900; text-align: center;">3</div>
                         </td>
                         <td style="padding-left: 10px;">
-                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Grand Finale Hackathon (10 December 2026)</div>
+                          <div style="font-size: 13px; font-weight: 700; color: #FFFFFF;">Grand Finale Hackathon (TBA — Bhopal, Madhya Pradesh)</div>
                           <div style="margin-top: 3px; font-size: 12px; color: #9CA3AF; line-height: 18px;">
                             Shortlisted teams convene in Bhopal, Madhya Pradesh to build, demo live prototypes, and compete for top prizes and mentorship.
                           </div>
@@ -482,7 +482,7 @@ Team Size       : ${data.teamSize} Member${data.teamSize > 1 ? "s" : ""}
 ${memberNames.length > 0 ? `Team Members    : ${memberNames.join(", ")}\n` : ""}Preferred Track : ${domainDisplay}
 
 --------------------------------------------------
-PAYMENT SUMMARY (₹10 PAID)
+PAYMENT SUMMARY (₹${paidAmount} PAID)
 --------------------------------------------------
 Entry Fee       : ₹${paidAmount} INR
 Payment Status  : PAID · Razorpay Verified
@@ -502,13 +502,13 @@ ${
 --------------------------------------------------
 NEXT STEPS & SCHEDULE
 --------------------------------------------------
-1. Round 1 Online Evaluation (25 November 2026)
+1. Round 1 Online Evaluation (20 December 2026)
    The expert judging panel evaluates your submitted idea presentation on problem impact, technical feasibility, innovation, and scalability.
 
-2. Shortlist Announcement (30 November 2026)
+2. Shortlist Announcement (TBA — After Round 1)
    Qualifying teams will be officially published and notified via direct email invitation with Grand Finale guidelines.
 
-3. Grand Finale Hackathon (10 December 2026)
+3. Grand Finale Hackathon (TBA — Bhopal, Madhya Pradesh)
    Shortlisted teams convene in Bhopal, Madhya Pradesh to build, demo live prototypes, and compete for top prizes.
 
 ==================================================
@@ -532,7 +532,8 @@ export function generateAdminRegistrationNotificationEmail(data: EmailRegistrati
   html: string;
   text: string;
 } {
-  const subject = `[NEW REGISTRATION] ${data.teamName} — ${data.playerId} (₹10 Paid)`;
+  const paidAmount = data.paymentAmount ? Number(data.paymentAmount) : 199;
+  const subject = `[NEW REGISTRATION] ${data.teamName} — ${data.playerId} (₹${paidAmount} Paid)`;
   const presentationLink = data.ideaDriveLink || data.pptUrl || "";
   const memberNames: string[] = [];
   if (data.members && data.members.length > 0) {
@@ -566,7 +567,7 @@ export function generateAdminRegistrationNotificationEmail(data: EmailRegistrati
                 Team: ${data.teamName}
               </div>
               <div style="margin-top: 4px; font-size: 13px; color: #10B981; font-weight: 700;">
-                ● ₹10 INR Paid · Razorpay Verified
+                ● ₹${paidAmount} INR Paid · Razorpay Verified
               </div>
             </td>
           </tr>
@@ -683,7 +684,7 @@ export function generateAdminRegistrationNotificationEmail(data: EmailRegistrati
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 8px;">
                       <tr>
                         <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF; width: 38%;">Amount:</td>
-                        <td style="padding: 4px 0; font-size: 11px; color: #FFFFFF; font-weight: 700;">₹10.00 INR (1000 paise)</td>
+                        <td style="padding: 4px 0; font-size: 11px; color: #FFFFFF; font-weight: 700;">₹${paidAmount}.00 INR (${paidAmount * 100} paise)</td>
                       </tr>
                       <tr>
                         <td style="padding: 4px 0; font-size: 11px; color: #9CA3AF;">Order ID:</td>
@@ -735,7 +736,7 @@ GOOGLE DRIVE LINK:
 ${presentationLink || "No link provided"}
 
 PAYMENT DETAILS:
-Amount          : ₹10 INR (1000 paise)
+Amount          : ₹${paidAmount} INR (${paidAmount * 100} paise)
 Payment Status  : PAID & CAPTURED
 Razorpay Order  : ${data.orderId || "N/A"}
 Razorpay Payment: ${data.paymentId || "N/A"}

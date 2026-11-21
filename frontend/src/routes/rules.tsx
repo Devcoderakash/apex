@@ -59,9 +59,9 @@ const RULES_SECTIONS = [
     code: "RULE_02",
     title: "2. Important Dates",
     points: [
-      "Online Submission Round: 25 November 2026 (Submissions close at 23:59 IST).",
-      "Shortlisted Teams Announcement: 30 November 2026 via official website and registered email.",
-      "Grand Finale: 10 December 2026 at the designated venue in Bhopal, Madhya Pradesh.",
+      "Online Submission Round: 20 December 2026 (Submissions close at 23:59 IST).",
+      "Shortlisted Teams Announcement: TBA (To be announced after Round 1) via official website and registered email.",
+      "Grand Finale: TBA at the designated venue in Bhopal, Madhya Pradesh.",
       "Exact finale venue will be communicated directly to shortlisted teams.",
     ],
   },
@@ -82,7 +82,7 @@ const RULES_SECTIONS = [
     title: "4. Registration",
     points: [
       "Registration must be completed through https://apexhack.online/register.",
-      "The registration fee is fixed at ₹10 per team for Round 1.",
+      "The registration fee is fixed at ₹199 per team for Round 1.",
       "Registration is complete and valid ONLY after successful online payment via Razorpay and submission of required team and project details.",
       "Each team receives an official sequential Player ID (e.g., APEX-1001) upon confirmed payment.",
     ],
@@ -126,7 +126,7 @@ const RULES_SECTIONS = [
     code: "RULE_08",
     title: "8. Finale Participation",
     points: [
-      "Physical participation in Bhopal on 10 December 2026 is expected for all shortlisted teams.",
+      "Physical participation in Bhopal for the Grand Finale (TBA) is expected for all shortlisted teams.",
       "Teams are responsible for their travel arrangements to Bhopal. Organizers provide high-speed Wi-Fi, power, mentors, and designated hack zones.",
       "Online presentation may be requested with prior organizer approval under exceptional circumstances. It is not automatically guaranteed.",
     ],

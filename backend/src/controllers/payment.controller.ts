@@ -88,7 +88,7 @@ export const registrationPayloadSchema = z
 
 /**
  * POST /api/registrations/create-order, POST /api/create-order
- * Validates payload and creates Razorpay Order for ₹10 (1000 paise).
+ * Validates payload and creates Razorpay Order for ₹199 (19900 paise).
  * Binds checkout payload securely on server without inserting confirmed DB rows!
  */
 export async function createOrder(req: Request, res: Response) {
@@ -163,7 +163,7 @@ export async function createOrder(req: Request, res: Response) {
 /**
  * POST /api/registrations/verify-payment, POST /api/verify-payment
  * 1. Cryptographically verifies HMAC-SHA256 signature.
- * 2. Fetches payment from Razorpay API to confirm captured status and ₹10 amount.
+ * 2. Fetches payment from Razorpay API to confirm captured status and ₹199 amount.
  * 3. Retrieves bound checkout payload.
  * 4. Atomically creates confirmed registration in public.apex_registrations.
  * 5. Returns unique R_ID (APEX-XXXXXXXXXXXXXXX).

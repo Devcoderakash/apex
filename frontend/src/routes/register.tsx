@@ -179,7 +179,7 @@ const CHECKLIST = [
   { icon: Users, text: "Form a team of 1 – 4 members (Leader + up to 3)" },
   { icon: FileText, text: "Provide your Google Drive presentation link (PDF/PPT)" },
   { icon: Shield, text: "Read and agree to Rules, Terms & Privacy Policy" },
-  { icon: Zap, text: "Pay ₹10 entry fee per team (Round 1)" },
+  { icon: Zap, text: "Pay ₹199 entry fee per team (Round 1)" },
   { icon: Trophy, text: "Build, pitch & win from a ₹30,000 prize pool" },
   { icon: Sparkles, text: "National open-innovation hackathon format" },
 ];
@@ -189,8 +189,8 @@ const QUICK_FACTS = [
   { label: "STRUCTURE", value: "2 Rounds (Online + Offline)" },
   { label: "TEAM SIZE", value: "1 – 4 Members" },
   { label: "PRIZE POOL", value: "₹30,000" },
-  { label: "ROUND 1 FEE", value: "₹10 / team" },
-  { label: "VENUE", value: "Tech Convention Centre, Bhopal" },
+  { label: "ROUND 1 FEE", value: "₹199 / team" },
+  { label: "VENUE", value: "Bhopal, Madhya Pradesh" },
 ];
 
 const FORM_STEPS = [
@@ -252,7 +252,7 @@ function RegisterPage() {
 
       toast.loading("Initiating registration order...", { id: "order_create" });
 
-      // 1. Create server-side order with Razorpay (₹10). Zero pre-payment database insertions!
+      // 1. Create server-side order with Razorpay (₹199). Zero pre-payment database insertions!
       const orderData = await createOrder({
         team_name: values.team_name,
         leader_name: values.leader_name,
@@ -312,7 +312,7 @@ function RegisterPage() {
       // 3. Open Razorpay Checkout modal with optimized UPI flow
       const options = {
         key: keyId as string,
-        amount: orderData.amount, // In paise (₹10 = 1000)
+        amount: orderData.amount, // In paise (₹199 = 19900)
         currency: orderData.currency || "INR",
         name: "APEX 1.0",
         description: `Round 1 Entry — Team ${values.team_name}`,
@@ -483,7 +483,7 @@ function RegisterPage() {
       <PageHeader
         code="SYSTEM_12 / ENTRY"
         title="Register your team"
-        subtitle="Form your 1–4 member team and submit your Google Drive presentation link. ₹10 entry fee applies for Round 1."
+        subtitle="Form your 1–4 member team and submit your Google Drive presentation link. ₹199 entry fee applies for Round 1."
       />
 
       <Section className="pt-4 pb-14 sm:py-20 md:py-28 px-3 sm:px-8 max-w-full overflow-hidden">
@@ -565,7 +565,7 @@ function RegisterPage() {
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
                   <div>
                     <p className="font-mono text-xs font-semibold tracking-widest text-amber-400">
-                      ENTRY FEE — ₹10
+                      ENTRY FEE — ₹199
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground leading-relaxed break-words">
                       Instant online payment via Razorpay upon clicking register. Your team ID
@@ -823,7 +823,7 @@ function RegisterPage() {
                       </div>
                       <div className="flex items-start gap-2 min-w-0">
                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                        <span className="break-words"><strong className="text-foreground">Round 1 Online:</strong> PPT/PDF idea review. ₹10 per team.</span>
+                        <span className="break-words"><strong className="text-foreground">Round 1 Online:</strong> PPT/PDF idea review. ₹199 per team.</span>
                       </div>
                       <div className="flex items-start gap-2 min-w-0">
                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
@@ -921,7 +921,7 @@ function RegisterPage() {
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <span className="font-mono text-[0.65rem] sm:text-xs font-semibold text-primary flex items-center gap-1.5">
                         <Smartphone className="h-3.5 w-3.5 text-primary" />
-                        INSTANT PAYMENT METHODS · ₹10 PER TEAM
+                        INSTANT PAYMENT METHODS · ₹199 PER TEAM
                       </span>
                       <span className="font-mono text-[0.6rem] text-muted-foreground">
                         Razorpay Secured
@@ -958,7 +958,7 @@ function RegisterPage() {
                         </span>
                       ) : (
                         <span className="flex items-center justify-center gap-1.5 sm:gap-2 text-center">
-                          <span>REGISTER & PAY ₹10</span>
+                          <span>REGISTER & PAY ₹199</span>
                           <span className="inline-block transition-transform duration-200 group-hover:translate-x-1 shrink-0">&rarr;</span>
                         </span>
                       )}

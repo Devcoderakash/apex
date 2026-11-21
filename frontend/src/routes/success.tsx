@@ -78,7 +78,7 @@ function SuccessPage() {
           r_id: rawId,
           team: search.team || "Team",
           leader: search.leader || "Team Leader",
-          amount: 10,
+          amount: 199,
         }
       : null,
   );
@@ -96,7 +96,7 @@ function SuccessPage() {
               ? Math.round(t.amount_paid / 100)
               : t.payment_amount
                 ? (t.payment_amount > 1000 ? Math.round(t.payment_amount / 100) : t.payment_amount)
-                : 10;
+                : 199;
             setTeamInfo({
               r_id: t.r_id || t.player_id,
               team: t.team_name,
@@ -112,7 +112,7 @@ function SuccessPage() {
         r_id: rawId,
         team: search.team || "Team",
         leader: search.leader || "Team Leader",
-        amount: 10,
+        amount: 199,
       });
     }
 
@@ -135,7 +135,7 @@ function SuccessPage() {
   const displayId = teamInfo?.r_id || rawId;
   const displayTeam = teamInfo?.team || search.team || "Team APEX";
   const displayLeader = teamInfo?.leader || search.leader || "Team Leader";
-  const displayAmount = teamInfo?.amount || 10;
+  const displayAmount = teamInfo?.amount || 199;
 
   const handleCopyId = () => {
     if (!displayId) return;

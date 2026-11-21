@@ -110,7 +110,7 @@ function Overview() {
       label: "TOTAL REVENUE",
       value: `₹${rows
         .filter((r) => r.payment_status === "paid")
-        .reduce((a, r) => a + (r.amount_paid ? r.amount_paid / 100 : (r.payment_amount ? (r.payment_amount > 1000 ? r.payment_amount / 100 : r.payment_amount) : 10)), 0)}`,
+        .reduce((a, r) => a + (r.amount_paid ? r.amount_paid / 100 : (r.payment_amount ? (r.payment_amount > 1000 ? r.payment_amount / 100 : r.payment_amount) : 199)), 0)}`,
     },
     { label: "APPROVED TEAMS", value: rows.filter((r) => r.status === "approved").length },
     { label: "TOTAL PARTICIPANTS", value: rows.reduce((a, r) => a + (r.team_size ?? 0), 0) },

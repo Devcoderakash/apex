@@ -28,7 +28,7 @@ export interface RazorpayCheckoutButtonProps {
 }
 
 export function RazorpayCheckoutButton({
-  amountInPaise = 1000, // Default ₹10
+  amountInPaise = 19900, // Default ₹199
   currency = "INR",
   name = "APEX 1.0",
   description = "Hackathon Registration Fee",

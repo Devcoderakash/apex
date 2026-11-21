@@ -69,7 +69,7 @@ const TERMS_SECTIONS = [
     code: "TERMS_03",
     title: "3. Registration and Fees",
     clauses: [
-      "The registration fee for Round 1 (Online Submission Round) is fixed at ₹10 per team.",
+      "The registration fee for Round 1 (Online Submission Round) is fixed at ₹199 per team.",
       "Registration is complete only upon successful online payment through our authorized payment gateway (Razorpay) and complete submission of required registration details.",
       "Upon payment confirmation, teams receive an official Player ID (e.g., APEX-1001) which must be quoted in all correspondence.",
     ],
@@ -90,9 +90,9 @@ const TERMS_SECTIONS = [
     code: "TERMS_05",
     title: "5. Event Schedule and Venue",
     clauses: [
-      "Online Submission Round deadline: 25 November 2026 (23:59 IST).",
-      "Shortlisted Teams Announcement: 30 November 2026.",
-      "Grand Finale: 10 December 2026 in Bhopal, Madhya Pradesh (exact venue communicated to shortlisted teams).",
+      "Online Submission Round deadline: 20 December 2026 (23:59 IST).",
+      "Shortlisted Teams Announcement: TBA (To be announced after Round 1).",
+      "Grand Finale: TBA in Bhopal, Madhya Pradesh (exact date and venue communicated to shortlisted teams).",
       "The organizer reserves the right to alter schedule timings with reasonable notice published on https://apexhack.online.",
     ],
   },
@@ -132,7 +132,7 @@ const TERMS_SECTIONS = [
     code: "TERMS_09",
     title: "9. Online Participation",
     clauses: [
-      "Physical participation in Bhopal on 10 December 2026 is expected for all shortlisted teams.",
+      "Physical participation in Bhopal for the Grand Finale (TBA) is expected for all shortlisted teams.",
       "Online presentation may be requested with prior organizer approval under exceptional circumstances. It is not automatically guaranteed.",
       "Teams granted online permission must ensure adequate internet connectivity and audio-visual equipment during live judging.",
     ],

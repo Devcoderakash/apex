@@ -59,7 +59,7 @@ async function runEmailProductionSuite() {
     preferredDomain: "AI & Autonomous Systems",
     ideaDriveLink: "https://drive.google.com/file/d/test1234/view",
     paymentStatus: "paid",
-    paymentAmount: 10,
+    paymentAmount: 199,
     paymentId: "pay_test_prod_1234",
     orderId: "order_test_prod_1234",
   };
@@ -73,13 +73,13 @@ async function runEmailProductionSuite() {
     participantEmail.html.includes("Your registration is confirmed. Your unique Team ID and payment details are inside."),
     "Participant HTML contains approved preview text",
   );
-  assert(participantEmail.html.includes("₹10"), "Participant HTML confirms ₹10 payment");
+  assert(participantEmail.html.includes("₹199"), "Participant HTML confirms ₹199 payment");
   assert(participantEmail.html.includes("https://drive.google.com/file/d/test1234/view"), "Participant HTML contains Drive Link");
   assert(participantEmail.text.includes("OFFICIAL REGISTRATION ID"), "Participant plain-text fallback valid");
 
   const adminEmail = generateAdminRegistrationNotificationEmail(sampleData);
   assert(adminEmail.subject.includes("[NEW REGISTRATION]"), "Admin subject has [NEW REGISTRATION] prefix");
-  assert(adminEmail.subject.includes("₹10 Paid"), "Admin subject confirms ₹10 payment");
+  assert(adminEmail.subject.includes("₹199 Paid"), "Admin subject confirms ₹199 payment");
   assert(adminEmail.html.includes("OPEN GOOGLE DRIVE PRESENTATION"), "Admin HTML contains Drive CTA");
   assert(adminEmail.text.includes("APEX 1.0 Administration Team"), "Admin plain text fallback valid");
 
@@ -91,7 +91,7 @@ async function runEmailProductionSuite() {
   const { registration } = await registerPaidTeam({
     razorpay_order_id: testOrderId,
     razorpay_payment_id: testPaymentId,
-    amount_paid: 1000,
+    amount_paid: 19900,
     team_name: "Apex Elite Prod Test",
     team_leader_name: "Akash Lodhi",
     email: "apexhackathon2k26@gmail.com",

@@ -623,7 +623,7 @@ export async function sendAdminTeamEmail(id: string, force = true): Promise<any>
  * Creates a generic Razorpay Standard Checkout order on the backend.
  */
 export async function createStandardOrder(params: {
-  amount: number; // in paise (e.g. 1000 = ₹10)
+  amount: number; // in paise (e.g. 19900 = ₹199)
   currency?: string;
   receipt?: string;
   notes?: Record<string, string>;

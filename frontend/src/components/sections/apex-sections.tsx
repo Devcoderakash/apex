@@ -821,7 +821,7 @@ export function PrizesSection() {
 
           <SystemLabel className="text-primary font-bold tracking-[0.25em]">FIRST PLACE</SystemLabel>
           <p className="mt-2.5 sm:mt-4 font-display text-4xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/95 to-white/70 drop-shadow-[0_0_25px_rgba(225,29,72,0.35)]">
-            <Counter to={18000} prefix="₹" />
+            <Counter to={15000} prefix="₹" />
           </p>
           <h3 className="mt-2 sm:mt-3 font-display text-sm sm:text-lg font-bold tracking-[0.18em] sm:tracking-[0.3em] text-primary">
             1ST PRIZE — GRAND CHAMPION
@@ -891,12 +891,12 @@ export function OrganizersSection() {
         <SectionHeading code="SYSTEM 07 / ORGANIZERS" title="The team behind APEX 1.0" />
       </Reveal>
 
-      {/* Mobile: Clean list with subtle hairlines (no repeated box overload) */}
+      {/* Mobile: Clean list with subtle hairlines */}
       <div className="mt-8 divide-y divide-white/[0.06] border-y border-white/[0.06] sm:hidden">
-        {ORGANIZERS.map((o) => (
-          <div key={o.name} className="flex items-center justify-between py-3.5">
+        {ORGANIZERS.map((o, idx) => (
+          <div key={idx} className="flex items-center justify-between py-3.5">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/10 font-display text-xs font-bold text-primary">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/10 font-mono text-xs font-bold text-muted-foreground">
                 {o.initials}
               </div>
               <div className="min-w-0">
@@ -906,13 +906,8 @@ export function OrganizersSection() {
                 <p className="truncate text-xs text-muted-foreground">{o.role}</p>
               </div>
             </div>
-            <div className="flex gap-2.5 shrink-0 pl-2">
-              <a href="#" className="font-mono text-[0.6rem] tracking-wider text-muted-foreground hover:text-primary py-1 px-1.5">
-                LI
-              </a>
-              <a href="#" className="font-mono text-[0.6rem] tracking-wider text-muted-foreground hover:text-primary py-1 px-1.5">
-                GH
-              </a>
+            <div className="font-mono text-[0.6rem] tracking-wider text-muted-foreground/60 shrink-0 pl-2 uppercase">
+              TBA
             </div>
           </div>
         ))}
@@ -921,23 +916,18 @@ export function OrganizersSection() {
       {/* Desktop: Grid cards */}
       <div className="mt-12 hidden sm:grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ORGANIZERS.map((o, i) => (
-          <Reveal key={o.name} delay={i * 0.05}>
-            <article className="glass-panel flex h-full items-center gap-4 rounded-xl p-5">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/10 font-display text-sm font-black text-primary">
+          <Reveal key={i} delay={i * 0.05}>
+            <article className="glass-panel flex h-full items-center gap-4 rounded-xl p-5 border-dashed border-border/60">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/5 font-mono text-xs font-bold text-muted-foreground">
                 {o.initials}
               </div>
               <div className="min-w-0">
-                <h3 className="truncate font-display text-base font-bold tracking-[0.14em]">
+                <h3 className="truncate font-display text-base font-bold tracking-[0.14em] text-foreground">
                   {o.name}
                 </h3>
                 <p className="text-sm text-muted-foreground">{o.role}</p>
-                <div className="mt-1.5 flex gap-3">
-                  <a href="#" className="font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground hover:text-primary">
-                    LINKEDIN
-                  </a>
-                  <a href="#" className="font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground hover:text-primary">
-                    GITHUB
-                  </a>
+                <div className="mt-1 font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground/60 uppercase">
+                  SLOT RESERVED
                 </div>
               </div>
             </article>

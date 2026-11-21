@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import { supabase } from "./supabase.service.js";
 
-export const REGISTRATION_FEE_INR = 10;
-export const REGISTRATION_FEE_PAISE = REGISTRATION_FEE_INR * 100; // 1000 paise
+export const REGISTRATION_FEE_INR = 199;
+export const REGISTRATION_FEE_PAISE = REGISTRATION_FEE_INR * 100; // 19900 paise
 
 export interface ApexRegistrationRecord {
   id: string;

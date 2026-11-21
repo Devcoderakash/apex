@@ -82,31 +82,31 @@ export const ROADMAP = [
     n: 1,
     title: "REGISTRATION",
     window: "OPEN NOW",
-    text: "Teams register for APEX 1.0 (1–4 members per team) and pay the ₹10 entry fee.",
+    text: "Teams register for APEX 1.0 (1–4 members per team) and pay the ₹199 entry fee.",
     active: true,
   },
   {
     id: "PHASE 02",
     n: 2,
     title: "ONLINE SUBMISSION ROUND",
-    window: "25 NOV 2026",
-    text: "Teams submit their project presentation (PPT/PDF, max 20 MB) explaining problem, solution, tech stack, and impact before 25 November 2026.",
+    window: "20 DEC 2026",
+    text: "Teams submit their project presentation (PPT/PDF, max 20 MB) explaining problem, solution, tech stack, and impact before 20 December 2026.",
     active: false,
   },
   {
     id: "PHASE 03",
     n: 3,
     title: "SHORTLISTED TEAMS ANNOUNCEMENT",
-    window: "30 NOV 2026",
-    text: "Official announcement of shortlisted teams selected by the evaluation panel for the Grand Finale.",
+    window: "TBA",
+    text: "Official announcement of shortlisted teams selected by the evaluation panel for the Grand Finale (to be announced after Round 1).",
     active: false,
   },
   {
     id: "PHASE 04",
     n: 4,
     title: "GRAND FINALE ARRIVAL",
-    window: "10 DEC 2026",
-    text: "Shortlisted teams gather in Bhopal, Madhya Pradesh for the offline Grand Finale (exact venue communicated to shortlisted teams).",
+    window: "TBA",
+    text: "Shortlisted teams gather in Bhopal, Madhya Pradesh for the offline Grand Finale (date and exact venue to be announced for shortlisted teams).",
     active: false,
   },
   {
@@ -138,10 +138,10 @@ export const ROADMAP = [
 export const RULES = [
   { n: "01", title: "ORGANIZER", text: "APEX 1.0 is organized by The Innovation League, Bhopal. Official website: https://apexhack.online." },
   { n: "02", title: "TEAM SIZE", text: "Teams must consist of 1–4 members. Every team must designate exactly one team leader. One participant cannot belong to multiple teams." },
-  { n: "03", title: "IMPORTANT DATES", text: "Online Submission Round: 25 November 2026. Shortlist Announcement: 30 November 2026. Grand Finale: 10 December 2026." },
-  { n: "04", title: "REGISTRATION FEE", text: "Round 1 registration fee is ₹10 per team. Registration is complete only after successful payment and submission of required details." },
+  { n: "03", title: "IMPORTANT DATES", text: "Online Submission Round: 20 December 2026. Shortlist Announcement: TBA (to be announced after Round 1). Grand Finale: TBA (Bhopal, Madhya Pradesh)." },
+  { n: "04", title: "REGISTRATION FEE", text: "Round 1 registration fee is ₹199 per team. Registration is complete only after successful payment and submission of required details." },
   { n: "05", title: "SUBMISSION GUIDELINES", text: "Accepted formats: PPT and PDF (max 20 MB). Projects must be original, explaining problem, solution, tech stack, implementation, and potential impact." },
-  { n: "06", title: "GRAND FINALE", text: "The Grand Finale will take place on 10 December 2026 in Bhopal, Madhya Pradesh. Physical participation is expected. Online presentation may be requested with prior organizer approval." },
+  { n: "06", title: "GRAND FINALE", text: "The Grand Finale will take place in Bhopal, Madhya Pradesh (date TBA). Physical participation is expected. Online presentation may be requested with prior organizer approval." },
   { n: "07", title: "TECHNOLOGY & TOOLS", text: "Teams may use any programming language, framework, or platform. AI tools are allowed provided participants understand and explain their solution." },
   { n: "08", title: "EVALUATION CRITERIA", text: "Projects are evaluated on Innovation & Originality, Problem Understanding, Technical Implementation, Practical Feasibility, User Experience & Design, Impact & Scalability, and Presentation & Demonstration." },
 ];
@@ -150,13 +150,13 @@ export const EVENT_DETAILS = {
   name: "APEX 1.0 National Hackathon",
   organizer: "The Innovation League, Bhopal",
   website: "https://apexhack.online",
-  registrationFee: 10,
+  registrationFee: 199,
   currency: "INR",
   dates: {
-    onlineSubmission: "25 November 2026",
-    shortlistAnnouncement: "30 November 2026",
-    grandFinale: "10 December 2026",
-    finaleVenue: "Bhopal, Madhya Pradesh (Exact venue communicated to shortlisted teams)",
+    onlineSubmission: "20 December 2026",
+    shortlistAnnouncement: "TBA (To be announced after Round 1)",
+    grandFinale: "TBA",
+    finaleVenue: "Bhopal, Madhya Pradesh (Date and exact venue to be announced for shortlisted teams)",
   },
   prizePool: {
     total: 30000,
@@ -209,11 +209,11 @@ export const FAQS = [
   },
   {
     q: "What are the key dates?",
-    a: "Online Submission Round: 25 November 2026. Shortlisted Teams Announcement: 30 November 2026. Grand Finale: 10 December 2026 in Bhopal, Madhya Pradesh.",
+    a: "Online Submission Round: 20 December 2026. Shortlisted Teams Announcement: TBA (to be announced after Round 1). Grand Finale: TBA in Bhopal, Madhya Pradesh.",
   },
   {
     q: "What is the registration fee?",
-    a: "The registration fee is ₹10 per team. Registration is confirmed only upon successful payment and submission of required team and project details.",
+    a: "The registration fee is ₹199 per team. Registration is confirmed only upon successful payment and submission of required team and project details.",
   },
   {
     q: "What formats are accepted for submission?",
@@ -225,7 +225,7 @@ export const FAQS = [
   },
   {
     q: "Is finale participation offline or online?",
-    a: "Physical participation in Bhopal on 10 December 2026 is expected for shortlisted teams. Online presentation may be requested with prior organizer approval, though it is not automatically guaranteed.",
+    a: "Physical participation in Bhopal (date TBA) is expected for shortlisted teams. Online presentation may be requested with prior organizer approval, though it is not automatically guaranteed.",
   },
   {
     q: "What are the evaluation criteria?",
@@ -245,11 +245,11 @@ export const SPONSOR_TIERS = [
 ];
 
 export const ORGANIZERS = [
-  { name: "A. VERMA", role: "Hackathon Director", initials: "AV" },
-  { name: "R. IYER", role: "Technical Lead", initials: "RI" },
-  { name: "S. KHAN", role: "Operations Lead", initials: "SK" },
-  { name: "M. RAO", role: "Design Lead", initials: "MR" },
-  { name: "T. GUPTA", role: "Community Lead", initials: "TG" },
+  { name: "To Be Announced", role: "Organizing Team", initials: "TBA" },
+  { name: "To Be Announced", role: "Organizing Team", initials: "TBA" },
+  { name: "To Be Announced", role: "Organizing Team", initials: "TBA" },
+  { name: "To Be Announced", role: "Organizing Team", initials: "TBA" },
+  { name: "To Be Announced", role: "Organizing Team", initials: "TBA" },
 ];
 
 export const MICROCOPY = [
