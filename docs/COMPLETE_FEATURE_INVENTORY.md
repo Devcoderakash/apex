@@ -7,7 +7,7 @@ All features across frontend, backend, database, and integrations have been cata
 | **FEAT-01** | Landing & Hero Section | Frontend | Interactive UI with countdown timer, glitch typography, and registration CTA | Fully Completed | `src/routes/index.tsx` |
 | **FEAT-02** | Registration & Team Entry | Full-Stack | 1–4 member team registration with dynamic slots and input validation | Fully Completed | `src/routes/register.tsx` |
 | **FEAT-03** | Presentation File Upload | Full-Stack | PPT/PDF upload to Supabase Storage (`apex-presentations`) with 20MB cap | Fully Completed | `uploadPptFile()` |
-| **FEAT-04** | Razorpay Live Checkout | Full-Stack | Server-side order creation (₹10) and client-side Razorpay standard modal | Fully Completed | Verified live: `order_TviaZ0YMzSZmgh` |
+| **FEAT-04** | Razorpay Live Checkout | Full-Stack | Server-side order creation (₹199) and client-side Razorpay standard modal | Fully Completed | Verified live: `order_TviaZ0YMzSZmgh` |
 | **FEAT-05** | HMAC Signature Verification | Backend | Timing-safe verification using `crypto.timingSafeEqual` | Fully Completed | `backend/src/services/razorpay.service.ts` |
 | **FEAT-06** | Digital Pass & Success Route | Frontend | Displays confirmed team pass, QR code payload, and payment receipt | Fully Completed | `src/routes/success.tsx` |
 | **FEAT-07** | Automated Email Dispatch | Backend | Nodemailer / Resend confirmation pipeline with database audit logging | Fully Completed | `backend/src/services/email.service.ts` |

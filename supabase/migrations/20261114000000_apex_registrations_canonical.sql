@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.apex_registrations (
   razorpay_order_id TEXT UNIQUE,
   razorpay_payment_id TEXT UNIQUE,
   payment_status TEXT NOT NULL DEFAULT 'pending',
-  amount_paid INTEGER NOT NULL DEFAULT 1000,
+  amount_paid INTEGER NOT NULL DEFAULT 19900,
   currency TEXT NOT NULL DEFAULT 'INR',
   payment_verified_at TIMESTAMPTZ,
 

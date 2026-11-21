@@ -13,7 +13,7 @@ flowchart TD
     Client -->|HTTPS / Static Assets| Vercel
     Client -->|Upload File <= 20MB| SupabaseStore
     Client -->|API /create-order| Backend
-    Backend -->|Create Order ₹10| RazorpayAPI
+    Backend -->|Create Order ₹199| RazorpayAPI
     Client -->|Checkout Modal| RazorpayAPI
     Client -->|Verify Signature| Backend
     Backend -->|Verify HMAC-SHA256| Backend

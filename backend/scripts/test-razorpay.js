@@ -28,7 +28,7 @@ async function testRazorpayDirect() {
       Authorization: authHeader,
     },
     body: JSON.stringify({
-      amount: 1000, // ₹10 in paise
+      amount: 19900, // ₹199 in paise
       currency: "INR",
       receipt: `test_rcpt_${Date.now()}`,
     }),

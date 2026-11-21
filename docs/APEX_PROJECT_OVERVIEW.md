@@ -13,7 +13,7 @@
 | **Organizer** | The Innovation League, Bhopal |
 | **Official Website** | https://apexhack.online |
 | **Official Contact** | support@apexhack.online |
-| **Entry Fee** | ₹10 per team (Round 1 Review) |
+| **Entry Fee** | ₹199 per team (Round 1 Review) |
 | **Total Prize Pool** | ₹30,000 INR |
 | **First Prize** | ₹15,000 INR |
 | **Second Prize** | ₹10,000 INR |
@@ -23,9 +23,9 @@
 
 ## 2. Milestone Calendar
 
-- **Online Submission Round Deadline:** 25 November 2026
-- **Shortlisted Teams Announcement:** 30 November 2026
-- **Grand Finale (In-Person Pitch):** 10 December 2026
+- **Online Submission Round Deadline:** 20 December 2026
+- **Shortlisted Teams Announcement:** TBA
+- **Grand Finale (In-Person Pitch):** TBA
 - **Finale Venue:** Bhopal, Madhya Pradesh (Exact venue disclosed to shortlisted finalists).
 
 ---
@@ -40,6 +40,6 @@
 ## 4. End-to-End Participant Journey
 1. **Discovery & Exploration:** Users land on `apexhack.online` with full access to rules, timelines, prize distributions, and FAQs.
 2. **Team Registration:** Teams (1–4 members) designate a single leader, input contact and college information, provide project briefs, and upload PPT/PDF pitch decks (max 20MB) to Supabase Cloud Storage.
-3. **Decoupled Consent & Payment:** Teams acknowledge official Terms and Privacy Policy (mandatory service processing) and choose whether to opt in to promotional channels. They complete ₹10 registration via Razorpay Standard Checkout (UPI, Cards, NetBanking).
+3. **Decoupled Consent & Payment:** Teams acknowledge official Terms and Privacy Policy (mandatory service processing) and choose whether to opt in to promotional channels. They complete ₹199 registration via Razorpay Standard Checkout (UPI, Cards, NetBanking).
 4. **Instant Pass & Email:** Successful transactions trigger automated confirmation emails with player ID (`APEX-XXXX`) and digital registration pass.
 5. **Shortlisting & Finale:** Shortlisted teams pitch physically in Bhopal on 10 December 2026 for ₹30,000 in cash prizes.

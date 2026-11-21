@@ -20,7 +20,7 @@ APEX 1.0 is organized and administered exclusively by **The Innovation League, B
 - The designated Team Leader serves as the primary point of contact for all administrative communications.
 
 ## 4. Registration Fees & Payment Policy
-- Registration fee is **₹10 per team** for the Round 1 Online Submission.
+- Registration fee is **₹199 per team** for the Round 1 Online Submission.
 - Payments must be completed through the integrated Razorpay payment gateway on `apexhack.online`.
 - Registration is confirmed only upon successful payment verification and issuance of a valid Player ID (`APEX-XXXX`).
 

@@ -3,7 +3,7 @@
 ## Test Executions
 
 ### 1. Razorpay Order Creation & Live Mode
-- **Test:** Server-to-server order generation with ₹10 fee.
+- **Test:** Server-to-server order generation with ₹199 fee.
 - **Result:** PASSED. Generated order `order_TviaZ0YMzSZmgh` verified directly on Razorpay live servers.
 
 ### 2. Timing-Safe Signature Verification

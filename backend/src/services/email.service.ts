@@ -104,7 +104,7 @@ export function extractEmailData(team: any, playerId: string): EmailRegistration
   const rawAmount = team.amount_paid
     ? team.amount_paid / 100
     : team.payment_amount
-      ? (team.payment_amount > 1000 ? team.payment_amount / 100 : team.payment_amount)
+      ? (team.payment_amount >= 100 ? team.payment_amount / 100 : team.payment_amount)
       : REGISTRATION_FEE_INR;
   const rawPaymentId = team.razorpay_payment_id || team.payment_id || "";
   const rawDriveLink = team.idea_drive_link || team.ppt_url || "";

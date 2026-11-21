@@ -4,7 +4,7 @@
 
 | Endpoint | Method | Auth Guard | Validation | Rate Limiting | Status |
 |---|---|---|---|---|---|
-| `/api/create-order` | POST | Public | Zod Schema | Express Parser | Verified (₹10 fixed server-side) |
+| `/api/create-order` | POST | Public | Zod Schema | Express Parser | Verified (₹199 fixed server-side) |
 | `/api/verify-payment` | POST | Public | Zod Schema | Timing-Safe HMAC | Verified (SHA256 signature) |
 | `/api/upload/presentation` | POST | Public | Multer + Ext Check | 20MB ceiling | Verified (Supabase Cloud Storage) |
 | `/api/grievance` | POST | Public | Zod Schema | Body sanitization | Verified (`GRV-XXXX` generated) |
@@ -17,4 +17,4 @@
 ## Threat Protection Summary
 - **Input Sanitization:** URL schemes restricted against `javascript:` and `data:` attacks.
 - **Timing Attacks:** Admin key and HMAC signature verification use `crypto.timingSafeEqual` to prevent side-channel leaks.
-- **Price Tampering:** Order amounts are hardcoded server-side (`REGISTRATION_FEE_PAISE = 1000`); client amounts are completely ignored.
+- **Price Tampering:** Order amounts are hardcoded server-side (`REGISTRATION_FEE_PAISE = 19900`); client amounts are completely ignored.

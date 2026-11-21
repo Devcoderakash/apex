@@ -95,7 +95,7 @@ function SuccessPage() {
             const calculatedAmount = t.amount_paid
               ? Math.round(t.amount_paid / 100)
               : t.payment_amount
-                ? (t.payment_amount > 1000 ? Math.round(t.payment_amount / 100) : t.payment_amount)
+                ? (t.payment_amount >= 100 ? Math.round(t.payment_amount / 100) : t.payment_amount)
                 : 199;
             setTeamInfo({
               r_id: t.r_id || t.player_id,

@@ -66,7 +66,7 @@ function normalizeRegistrationRow(row: any) {
     payment_amount: row.amount_paid
       ? row.amount_paid / 100
       : row.payment_amount
-        ? (row.payment_amount > 1000 ? row.payment_amount / 100 : row.payment_amount)
+        ? (row.payment_amount >= 100 ? row.payment_amount / 100 : row.payment_amount)
         : REGISTRATION_FEE_INR,
     amount_paid:
       row.amount_paid !== undefined && row.amount_paid !== null
